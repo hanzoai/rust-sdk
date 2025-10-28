@@ -1,0 +1,52 @@
+# Rust
+target/
+Cargo.lock
+**/*.rs.bk
+*.pdb
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentation
+doc/
+docs/book/
+
+# Coverage
+tarpaulin-report.html
+cobertura.xml
+coverage/
+
+# Benchmarks
+benches/target/
+
+# Credentials and secrets
+.env
+.env.local
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Backup files
+*.backup
+*.bak
+*.tmp
+
+# Log files
+*.log
+
+# Test artifacts
+test-results/
+junit.xml
+
+# Release artifacts
+dist/
+release/

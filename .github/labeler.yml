@@ -1,0 +1,37 @@
+# Configuration for auto-labeling PRs
+
+# Crate-specific labels
+'crate: hanzo-kbs':
+  - crates/hanzo-kbs/**/*
+
+'crate: hanzo-pqc':
+  - crates/hanzo-pqc/**/*
+
+'crate: hanzo-message-primitives':
+  - crates/hanzo-message-primitives/**/*
+
+# Type labels
+documentation:
+  - '**/*.md'
+  - 'docs/**/*'
+
+ci:
+  - '.github/**/*'
+
+dependencies:
+  - '**/Cargo.toml'
+  - '**/Cargo.lock'
+
+tests:
+  - '**/*test*'
+  - '**/*spec*'
+
+examples:
+  - '**/examples/**/*'
+
+# Security-related
+security:
+  - '**/security*'
+  - '**/*crypto*'
+  - '**/*attestation*'
+  - '**/*tee*'
