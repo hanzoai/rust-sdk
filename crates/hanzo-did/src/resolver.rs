@@ -1,6 +1,6 @@
 //! DID Resolution
 //!
-//! Based on: https://www.w3.org/TR/did-core/#resolution
+//! Based on: <https://www.w3.org/TR/did-core/>#resolution
 
 use async_trait::async_trait;
 use std::collections::HashMap;

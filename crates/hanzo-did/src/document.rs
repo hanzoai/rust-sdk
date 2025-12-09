@@ -1,6 +1,6 @@
 //! W3C DID Document implementation
 //!
-//! Based on: https://www.w3.org/TR/did-core/#did-documents
+//! Based on: <https://www.w3.org/TR/did-core/>#did-documents
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};

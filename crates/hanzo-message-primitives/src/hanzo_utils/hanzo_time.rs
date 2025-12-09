@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 
-/// Struct for generating RFC3339 datetimes as DateTime<Utc>
+/// Struct for generating RFC3339 datetimes as `DateTime<Utc>`
 pub struct HanzoTime {}
 
 impl HanzoTime {

@@ -59,7 +59,7 @@ jobs:
           - stable
           - beta
           - nightly
-          - 1.70.0  # MSRV
+          - 1.75.0  # MSRV (workspace.lints requires 1.74+)
         exclude:
           # Exclude some combinations to save CI time
           - os: macos-latest

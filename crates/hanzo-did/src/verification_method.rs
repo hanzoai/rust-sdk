@@ -1,6 +1,6 @@
 //! W3C Verification Methods
 //!
-//! Based on: https://www.w3.org/TR/did-core/#verification-methods
+//! Based on: <https://www.w3.org/TR/did-core/>#verification-methods
 
 use serde::{Deserialize, Serialize};
 use std::fmt;

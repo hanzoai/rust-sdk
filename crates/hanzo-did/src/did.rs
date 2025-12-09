@@ -1,6 +1,6 @@
 //! W3C DID (Decentralized Identifier) implementation
 //!
-//! Based on W3C DID Core specification: https://www.w3.org/TR/did-core/
+//! Based on W3C DID Core specification: <https://www.w3.org/TR/did-core/>
 
 use regex::Regex;
 use serde::{Deserialize, Serialize};

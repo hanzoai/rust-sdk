@@ -1,8 +1,6 @@
 //! Wire protocol for PQC-enabled P2P handshake and key exchange
 
-use crate::{
-    hybrid::HybridCiphertext, privacy_tiers::PrivacyTier, signature::DigitalSignature,
-};
+use crate::{hybrid::HybridCiphertext, privacy_tiers::PrivacyTier, signature::DigitalSignature};
 use serde::{Deserialize, Serialize};
 
 /// P2P handshake message with PQC support

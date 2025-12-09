@@ -64,10 +64,7 @@ impl ToolRouterKey {
     where
         S: serde::Serializer,
     {
-        let strings: Vec<String> = tools
-            .iter()
-            .map(|k| k.to_string_with_version())
-            .collect();
+        let strings: Vec<String> = tools.iter().map(|k| k.to_string_with_version()).collect();
         strings.serialize(serializer)
     }
 

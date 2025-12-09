@@ -164,8 +164,7 @@ impl Prompt {
         priority_value: u8,
     ) {
         let capped_priority_value = std::cmp::min(priority_value, 100);
-        let sub_prompt =
-            SubPrompt::ToolAvailable(prompt_type, tool_content, capped_priority_value);
+        let sub_prompt = SubPrompt::ToolAvailable(prompt_type, tool_content, capped_priority_value);
         self.add_sub_prompt(sub_prompt);
     }
 
