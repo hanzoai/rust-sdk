@@ -21,16 +21,17 @@
 //!
 //! # Example
 //!
-//! ```no_run
-//! use hanzo_agents::{AgentRegistry, AgentType};
+//! ```ignore
+//! use hanzo_agents::{AgentRegistry, AgentType, AgentConfig};
 //!
 //! #[tokio::main]
-//! async fn main() -> anyhow::Result<()> {
-//!     let registry = AgentRegistry::new();
+//! async fn main() -> Result<(), Box<dyn std::error::Error>> {
+//!     let mut registry = AgentRegistry::new();
 //!     let architect = registry.get(AgentType::Architect)?;
+//!     let config = AgentConfig::default();
 //!
 //!     let result = architect
-//!         .run("Design a microservices architecture for a payment system")
+//!         .run("Design a microservices architecture for a payment system", &config)
 //!         .await?;
 //!
 //!     println!("{}", result.output);
