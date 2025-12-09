@@ -2,7 +2,9 @@
 
 use crate::prompts::SCIENTIST_PROMPT;
 use crate::tools::ToolRegistry;
-use crate::traits::{AgentConfig, AgentError, AgentOutput, Result, SpecializedAgent, ToolDefinition, Usage};
+use crate::traits::{
+    AgentConfig, AgentError, AgentOutput, Result, SpecializedAgent, ToolDefinition, Usage,
+};
 use async_trait::async_trait;
 use std::sync::Arc;
 
@@ -37,33 +39,36 @@ impl SpecializedAgent for ScientistAgent {
 
     fn tools(&self) -> Vec<ToolDefinition> {
         vec![
-            ToolDefinition::new("web_search", "Search the web for information")
-                .with_parameters(serde_json::json!({
+            ToolDefinition::new("web_search", "Search the web for information").with_parameters(
+                serde_json::json!({
                     "type": "object",
                     "properties": {
                         "query": { "type": "string" },
                         "num_results": { "type": "integer", "default": 5 }
                     },
                     "required": ["query"]
-                })),
-            ToolDefinition::new("read_url", "Read content from a URL")
-                .with_parameters(serde_json::json!({
+                }),
+            ),
+            ToolDefinition::new("read_url", "Read content from a URL").with_parameters(
+                serde_json::json!({
                     "type": "object",
                     "properties": {
                         "url": { "type": "string" }
                     },
                     "required": ["url"]
-                })),
-            ToolDefinition::new("read_file", "Read a local file")
-                .with_parameters(serde_json::json!({
+                }),
+            ),
+            ToolDefinition::new("read_file", "Read a local file").with_parameters(
+                serde_json::json!({
                     "type": "object",
                     "properties": {
                         "path": { "type": "string" }
                     },
                     "required": ["path"]
-                })),
-            ToolDefinition::new("analyze_data", "Analyze data with statistics")
-                .with_parameters(serde_json::json!({
+                }),
+            ),
+            ToolDefinition::new("analyze_data", "Analyze data with statistics").with_parameters(
+                serde_json::json!({
                     "type": "object",
                     "properties": {
                         "data": { "type": "array", "items": { "type": "number" } },
@@ -76,9 +81,10 @@ impl SpecializedAgent for ScientistAgent {
                         }
                     },
                     "required": ["data"]
-                })),
-            ToolDefinition::new("create_hypothesis", "Document a hypothesis")
-                .with_parameters(serde_json::json!({
+                }),
+            ),
+            ToolDefinition::new("create_hypothesis", "Document a hypothesis").with_parameters(
+                serde_json::json!({
                     "type": "object",
                     "properties": {
                         "hypothesis": { "type": "string" },
@@ -87,7 +93,8 @@ impl SpecializedAgent for ScientistAgent {
                         "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
                     },
                     "required": ["hypothesis"]
-                })),
+                }),
+            ),
         ]
     }
 
@@ -113,6 +120,8 @@ impl SpecializedAgent for ScientistAgent {
         _input: &str,
         _config: &AgentConfig,
     ) -> Result<Box<dyn futures::Stream<Item = Result<String>> + Send + Unpin>> {
-        Err(AgentError::Other("Streaming not yet implemented".to_string()))
+        Err(AgentError::Other(
+            "Streaming not yet implemented".to_string(),
+        ))
     }
 }

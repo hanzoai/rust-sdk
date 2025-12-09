@@ -35,11 +35,9 @@ async fn main() -> Result<()> {
 
     // Initialize logging
     if args.debug {
-        env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("debug"))
-            .init();
+        env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("debug")).init();
     } else {
-        env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info"))
-            .init();
+        env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
     }
 
     info!("Starting Hanzo MCP Server v{}", env!("CARGO_PKG_VERSION"));
@@ -62,7 +60,7 @@ async fn main() -> Result<()> {
 
     // Create and start MCP server
     let server = MCPServer::new(config, args.port)?;
-    
+
     info!("MCP Server listening on port {}", args.port);
     info!("Available tools:");
     info!("  - computer_control: Screenshot, mouse, keyboard control");
@@ -71,7 +69,7 @@ async fn main() -> Result<()> {
     info!("  - file_system: File operations and search");
     info!("  - web_search: Web scraping and search");
     info!("  - code_execution: Safe code execution sandbox");
-    
+
     server.run().await?;
 
     Ok(())
@@ -80,24 +78,21 @@ async fn main() -> Result<()> {
 async fn check_hanzo_node() -> Result<String> {
     // Check if hanzo-node is running by looking for its process or API
     // This would connect to the hanzo-node's management API if available
-    
+
     // Try to connect to default hanzo-node management port
     if let Ok(response) = reqwest::get("http://localhost:9999/status").await {
         if response.status().is_success() {
             return Ok("Connected to hanzo-node on localhost:9999".to_string());
         }
     }
-    
+
     // Check for hanzod process
     use std::process::Command;
-    let output = Command::new("pgrep")
-        .arg("-f")
-        .arg("hanzod")
-        .output()?;
-    
+    let output = Command::new("pgrep").arg("-f").arg("hanzod").output()?;
+
     if output.status.success() && !output.stdout.is_empty() {
         return Ok("hanzo-node process detected".to_string());
     }
-    
+
     Err(anyhow::anyhow!("hanzo-node not found"))
 }

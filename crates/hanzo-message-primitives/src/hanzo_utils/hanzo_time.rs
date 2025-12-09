@@ -15,9 +15,19 @@ impl HanzoTime {
     }
 
     /// Generates a Datetime at a specific moment in time
-    pub fn generate_specific_time(year: i32, month: u32, day: u32, hr: u32, min: u32, sec: u32) -> DateTime<Utc> {
+    pub fn generate_specific_time(
+        year: i32,
+        month: u32,
+        day: u32,
+        hr: u32,
+        min: u32,
+        sec: u32,
+    ) -> DateTime<Utc> {
         let naive_datetime = chrono::NaiveDate::from_ymd_opt(year, month, day)
-            .and_then(|date| chrono::NaiveTime::from_hms_opt(hr, min, sec).map(|t| chrono::NaiveDateTime::new(date, t)))
+            .and_then(|date| {
+                chrono::NaiveTime::from_hms_opt(hr, min, sec)
+                    .map(|t| chrono::NaiveDateTime::new(date, t))
+            })
             .expect("invalid date/time components");
 
         DateTime::from_naive_utc_and_offset(naive_datetime, Utc)
@@ -67,9 +77,19 @@ impl HanzoStringTime {
     }
 
     /// Generates a datetime String at a specific moment in time
-    pub fn generate_specific_time(year: i32, month: u32, day: u32, hr: u32, min: u32, sec: u32) -> String {
+    pub fn generate_specific_time(
+        year: i32,
+        month: u32,
+        day: u32,
+        hr: u32,
+        min: u32,
+        sec: u32,
+    ) -> String {
         let naive_datetime = chrono::NaiveDate::from_ymd_opt(year, month, day)
-            .and_then(|date| chrono::NaiveTime::from_hms_opt(hr, min, sec).map(|t| chrono::NaiveDateTime::new(date, t)))
+            .and_then(|date| {
+                chrono::NaiveTime::from_hms_opt(hr, min, sec)
+                    .map(|t| chrono::NaiveDateTime::new(date, t))
+            })
             .expect("invalid date/time components");
 
         let datetime: DateTime<Utc> = DateTime::from_naive_utc_and_offset(naive_datetime, Utc);

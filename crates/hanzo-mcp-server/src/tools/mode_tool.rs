@@ -1,9 +1,8 @@
 /// Tool for managing development modes with programmer personalities
-
 use crate::tools::personality::{self, ToolPersonality};
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use anyhow::Result;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ModeToolArgs {
@@ -42,7 +41,8 @@ impl ModeTool {
             return Ok("No modes registered".to_string());
         }
 
-        let mut output = vec!["Available development modes (programmer personalities):".to_string()];
+        let mut output =
+            vec!["Available development modes (programmer personalities):".to_string()];
         let active = personality::api::get_active();
         let active_name = active.as_ref().map(|a| a.name.clone());
 
@@ -72,26 +72,25 @@ impl ModeTool {
 
     fn activate_mode(&self, name: Option<String>) -> Result<String> {
         let name = name.ok_or_else(|| anyhow::anyhow!("Mode name required for activate action"))?;
-        
-        personality::api::set_active(&name)
-            .map_err(|e| anyhow::anyhow!("{}", e))?;
-        
+
+        personality::api::set_active(&name).map_err(|e| anyhow::anyhow!("{}", e))?;
+
         let mode = personality::api::get(&name)
             .ok_or_else(|| anyhow::anyhow!("Failed to retrieve activated mode"))?;
 
         let mut output = vec![format!("Activated mode: {}", mode.name)];
         output.push(format!("Programmer: {}", mode.programmer));
         output.push(format!("Description: {}", mode.description));
-        
+
         if let Some(philosophy) = &mode.philosophy {
             output.push(format!("Philosophy: {}", philosophy));
         }
-        
+
         output.push(format!("\nEnabled tools ({}):", mode.tools.len()));
-        
+
         // Group tools by category
         let (core, package, ai, search, other) = self.categorize_tools(&mode.tools);
-        
+
         if !core.is_empty() {
             output.push(format!("  Core: {}", core.join(", ")));
         }
@@ -107,45 +106,45 @@ impl ModeTool {
         if !other.is_empty() {
             output.push(format!("  Specialized: {}", other.join(", ")));
         }
-        
+
         if let Some(environment) = &mode.environment {
             output.push("\nEnvironment variables:".to_string());
             for (key, value) in environment {
                 output.push(format!("  {}={}", key, value));
             }
         }
-        
+
         output.push("\nNote: Restart MCP session for changes to take full effect".to_string());
-        
+
         Ok(output.join("\n"))
     }
 
     fn show_mode(&self, name: Option<String>) -> Result<String> {
         let name = name.ok_or_else(|| anyhow::anyhow!("Mode name required for show action"))?;
-        
+
         let mode = personality::api::get(&name)
             .ok_or_else(|| anyhow::anyhow!("Mode '{}' not found", name))?;
-        
+
         let mut output = vec![format!("Mode: {}", mode.name)];
         output.push(format!("Programmer: {}", mode.programmer));
         output.push(format!("Description: {}", mode.description));
-        
+
         if let Some(philosophy) = &mode.philosophy {
             output.push(format!("Philosophy: {}", philosophy));
         }
-        
+
         output.push(format!("\nTools ({}):", mode.tools.len()));
         for tool in &mode.tools {
             output.push(format!("  - {}", tool));
         }
-        
+
         if let Some(environment) = &mode.environment {
             output.push("\nEnvironment:".to_string());
             for (key, value) in environment {
                 output.push(format!("  {}={}", key, value));
             }
         }
-        
+
         Ok(output.join("\n"))
     }
 
@@ -155,65 +154,195 @@ impl ModeTool {
                 let mut output = vec![format!("Current mode: {}", active.name)];
                 output.push(format!("Programmer: {}", active.programmer));
                 output.push(format!("Description: {}", active.description));
-                
+
                 if let Some(philosophy) = &active.philosophy {
                     output.push(format!("Philosophy: {}", philosophy));
                 }
-                
+
                 output.push(format!("Enabled tools: {}", active.tools.len()));
-                
+
                 Ok(output.join("\n"))
             }
-            None => Ok("No mode currently active\nUse 'mode --action activate <name>' to activate one".to_string()),
+            None => Ok(
+                "No mode currently active\nUse 'mode --action activate <name>' to activate one"
+                    .to_string(),
+            ),
         }
     }
 
     fn categorize_modes(&self, _modes: &[ToolPersonality]) -> Vec<(&'static str, Vec<String>)> {
         vec![
-            ("Language Creators", vec![
-                "guido", "matz", "brendan", "dennis", "bjarne", 
-                "james", "anders", "larry", "rasmus", "rich",
-            ].into_iter().map(String::from).collect()),
-            ("Systems & Infrastructure", vec![
-                "linus", "rob", "ken", "bill", "richard",
-                "brian", "donald", "graydon", "ryan", "mitchell",
-            ].into_iter().map(String::from).collect()),
-            ("Web & Frontend", vec![
-                "tim", "douglas", "john", "evan", "jordan",
-                "jeremy", "david", "taylor", "adrian", "matt",
-            ].into_iter().map(String::from).collect()),
-            ("Database & Data", vec![
-                "michael_s", "michael_w", "salvatore", "dwight", "edgar",
-                "jim_gray", "jeff_dean", "sanjay", "mike", "matei",
-            ].into_iter().map(String::from).collect()),
-            ("AI & Machine Learning", vec![
-                "yann", "geoffrey", "yoshua", "andrew", "demis",
-                "ilya", "andrej", "chris", "francois", "jeremy_howard",
-            ].into_iter().map(String::from).collect()),
-            ("Security & Cryptography", vec![
-                "bruce", "phil", "whitfield", "ralph", "daniel_b",
-                "moxie", "theo", "dan_kaminsky", "katie", "matt_blaze",
-            ].into_iter().map(String::from).collect()),
-            ("Gaming & Graphics", vec![
-                "carmack", "john_carmack", "sid", "shigeru", "gabe",
-                "markus", "jonathan", "casey", "tim_sweeney", "hideo", "will",
-            ].into_iter().map(String::from).collect()),
-            ("Open Source Leaders", vec![
-                "miguel", "nat", "patrick", "ian", "mark_shuttleworth",
-                "lennart", "bram", "daniel_r", "judd", "fabrice",
-            ].into_iter().map(String::from).collect()),
-            ("Modern Innovators", vec![
-                "vitalik", "satoshi", "chris_lattner", "joe", "jose",
-                "sebastian", "palmer", "dylan", "guillermo", "tom",
-            ].into_iter().map(String::from).collect()),
-            ("Special Configurations", vec![
-                "fullstack", "minimal", "data_scientist", "devops", "security",
-                "academic", "startup", "enterprise", "creative", "hanzo", "10x",
-            ].into_iter().map(String::from).collect()),
+            (
+                "Language Creators",
+                vec![
+                    "guido", "matz", "brendan", "dennis", "bjarne", "james", "anders", "larry",
+                    "rasmus", "rich",
+                ]
+                .into_iter()
+                .map(String::from)
+                .collect(),
+            ),
+            (
+                "Systems & Infrastructure",
+                vec![
+                    "linus", "rob", "ken", "bill", "richard", "brian", "donald", "graydon", "ryan",
+                    "mitchell",
+                ]
+                .into_iter()
+                .map(String::from)
+                .collect(),
+            ),
+            (
+                "Web & Frontend",
+                vec![
+                    "tim", "douglas", "john", "evan", "jordan", "jeremy", "david", "taylor",
+                    "adrian", "matt",
+                ]
+                .into_iter()
+                .map(String::from)
+                .collect(),
+            ),
+            (
+                "Database & Data",
+                vec![
+                    "michael_s",
+                    "michael_w",
+                    "salvatore",
+                    "dwight",
+                    "edgar",
+                    "jim_gray",
+                    "jeff_dean",
+                    "sanjay",
+                    "mike",
+                    "matei",
+                ]
+                .into_iter()
+                .map(String::from)
+                .collect(),
+            ),
+            (
+                "AI & Machine Learning",
+                vec![
+                    "yann",
+                    "geoffrey",
+                    "yoshua",
+                    "andrew",
+                    "demis",
+                    "ilya",
+                    "andrej",
+                    "chris",
+                    "francois",
+                    "jeremy_howard",
+                ]
+                .into_iter()
+                .map(String::from)
+                .collect(),
+            ),
+            (
+                "Security & Cryptography",
+                vec![
+                    "bruce",
+                    "phil",
+                    "whitfield",
+                    "ralph",
+                    "daniel_b",
+                    "moxie",
+                    "theo",
+                    "dan_kaminsky",
+                    "katie",
+                    "matt_blaze",
+                ]
+                .into_iter()
+                .map(String::from)
+                .collect(),
+            ),
+            (
+                "Gaming & Graphics",
+                vec![
+                    "carmack",
+                    "john_carmack",
+                    "sid",
+                    "shigeru",
+                    "gabe",
+                    "markus",
+                    "jonathan",
+                    "casey",
+                    "tim_sweeney",
+                    "hideo",
+                    "will",
+                ]
+                .into_iter()
+                .map(String::from)
+                .collect(),
+            ),
+            (
+                "Open Source Leaders",
+                vec![
+                    "miguel",
+                    "nat",
+                    "patrick",
+                    "ian",
+                    "mark_shuttleworth",
+                    "lennart",
+                    "bram",
+                    "daniel_r",
+                    "judd",
+                    "fabrice",
+                ]
+                .into_iter()
+                .map(String::from)
+                .collect(),
+            ),
+            (
+                "Modern Innovators",
+                vec![
+                    "vitalik",
+                    "satoshi",
+                    "chris_lattner",
+                    "joe",
+                    "jose",
+                    "sebastian",
+                    "palmer",
+                    "dylan",
+                    "guillermo",
+                    "tom",
+                ]
+                .into_iter()
+                .map(String::from)
+                .collect(),
+            ),
+            (
+                "Special Configurations",
+                vec![
+                    "fullstack",
+                    "minimal",
+                    "data_scientist",
+                    "devops",
+                    "security",
+                    "academic",
+                    "startup",
+                    "enterprise",
+                    "creative",
+                    "hanzo",
+                    "10x",
+                ]
+                .into_iter()
+                .map(String::from)
+                .collect(),
+            ),
         ]
     }
 
-    fn categorize_tools(&self, tools: &[String]) -> (Vec<String>, Vec<String>, Vec<String>, Vec<String>, Vec<String>) {
+    fn categorize_tools(
+        &self,
+        tools: &[String],
+    ) -> (
+        Vec<String>,
+        Vec<String>,
+        Vec<String>,
+        Vec<String>,
+        Vec<String>,
+    ) {
         let mut core = Vec::new();
         let mut package = Vec::new();
         let mut ai = Vec::new();
@@ -288,7 +417,7 @@ mod tests {
             action: "list".to_string(),
             name: None,
         };
-        
+
         let result = tool.execute(args).await;
         assert!(result.is_ok());
         let output = result.unwrap();
@@ -304,7 +433,7 @@ mod tests {
             action: "show".to_string(),
             name: Some("hanzo".to_string()),
         };
-        
+
         let result = tool.execute(args).await;
         assert!(result.is_ok());
         let output = result.unwrap();
@@ -319,7 +448,7 @@ mod tests {
             action: "activate".to_string(),
             name: Some("minimal".to_string()),
         };
-        
+
         let result = tool.execute(args).await;
         assert!(result.is_ok());
         let output = result.unwrap();

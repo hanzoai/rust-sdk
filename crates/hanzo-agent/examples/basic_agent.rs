@@ -81,8 +81,7 @@ async fn main() -> anyhow::Result<()> {
     // Configure the run
     let config = RunConfig::new()
         .with_api_key(
-            std::env::var("OPENAI_API_KEY")
-                .expect("OPENAI_API_KEY environment variable not set"),
+            std::env::var("OPENAI_API_KEY").expect("OPENAI_API_KEY environment variable not set"),
         )
         .with_max_turns(10);
 

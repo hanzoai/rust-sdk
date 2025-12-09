@@ -2,17 +2,26 @@ use crate::{command::CommandWrappedInShellBuilder, error::McpError, utils::disec
 
 type Result<T> = std::result::Result<T, McpError>;
 use rmcp::{
-    model::{CallToolRequestParam, CallToolResult, ClientCapabilities, ClientInfo, Implementation, Tool},
+    model::{
+        CallToolRequestParam, CallToolResult, ClientCapabilities, ClientInfo, Implementation, Tool,
+    },
     transport::{SseClientTransport, StreamableHttpClientTransport, TokioChildProcess},
     ServiceExt,
 };
 use std::collections::HashMap;
 use tokio::process::Command;
 
-pub async fn list_tools_via_command(cmd_str: &str, config: Option<HashMap<String, String>>) -> Result<Vec<Tool>> {
+pub async fn list_tools_via_command(
+    cmd_str: &str,
+    config: Option<HashMap<String, String>>,
+) -> Result<Vec<Tool>> {
     let (env_vars, cmd_executable, cmd_args) = disect_command(cmd_str.to_string());
     let (adapted_program, adapted_args, adapted_envs) =
-        CommandWrappedInShellBuilder::wrap_in_shell_as_values(cmd_executable, Some(cmd_args), Some(env_vars));
+        CommandWrappedInShellBuilder::wrap_in_shell_as_values(
+            cmd_executable,
+            Some(cmd_args),
+            Some(env_vars),
+        );
     let mut cmd = Command::new(adapted_program);
     cmd.kill_on_drop(true);
     cmd.envs(adapted_envs);
@@ -44,12 +53,17 @@ pub async fn list_tools_via_command(cmd_str: &str, config: Option<HashMap<String
     Ok(tools.unwrap())
 }
 
-pub async fn list_tools_via_sse(sse_url: &str, _config: Option<HashMap<String, String>>) -> Result<Vec<Tool>> {
+pub async fn list_tools_via_sse(
+    sse_url: &str,
+    _config: Option<HashMap<String, String>>,
+) -> Result<Vec<Tool>> {
     // TODO: The config parameter is not currently used by SseTransport or ClientInfo setup in the example.
     // It might be used in the future for authentication headers or other SSE-specific configurations.
-    let transport = SseClientTransport::start(sse_url).await.map_err(|e| McpError {
-        message: format!("{}", e),
-    })?;
+    let transport = SseClientTransport::start(sse_url)
+        .await
+        .map_err(|e| McpError {
+            message: format!("{}", e),
+        })?;
     let client_info = ClientInfo {
         protocol_version: Default::default(),
         capabilities: ClientCapabilities::default(),
@@ -83,7 +97,10 @@ pub async fn list_tools_via_sse(sse_url: &str, _config: Option<HashMap<String, S
     Ok(tools_result.unwrap())
 }
 
-pub async fn list_tools_via_http(sse_url: &str, _config: Option<HashMap<String, String>>) -> Result<Vec<Tool>> {
+pub async fn list_tools_via_http(
+    sse_url: &str,
+    _config: Option<HashMap<String, String>>,
+) -> Result<Vec<Tool>> {
     // TODO: The config parameter is not currently used by SseTransport or ClientInfo setup in the example.
     // It might be used in the future for authentication headers or other SSE-specific configurations.
     let transport = StreamableHttpClientTransport::from_uri(sse_url);
@@ -134,7 +151,11 @@ pub async fn run_tool_via_command(
 
     // Use the wrap_in_shell_as_values function to prepare the command
     let (adapted_program, adapted_args, adapted_envs) =
-        CommandWrappedInShellBuilder::wrap_in_shell_as_values(cmd_executable, Some(cmd_args), Some(env_vars.clone()));
+        CommandWrappedInShellBuilder::wrap_in_shell_as_values(
+            cmd_executable,
+            Some(cmd_args),
+            Some(env_vars.clone()),
+        );
 
     let mut cmd = Command::new(adapted_program);
     cmd.kill_on_drop(true);
@@ -273,10 +294,13 @@ pub async fn run_tool_via_http(
 // Resource Methods
 // =============================================================================
 
-use rmcp::model::{Resource, ReadResourceRequestParam};
+use rmcp::model::{ReadResourceRequestParam, Resource};
 
 /// List resources from an MCP server via HTTP
-pub async fn list_resources_via_http(url: &str, _config: Option<HashMap<String, String>>) -> Result<Vec<Resource>> {
+pub async fn list_resources_via_http(
+    url: &str,
+    _config: Option<HashMap<String, String>>,
+) -> Result<Vec<Resource>> {
     let transport = StreamableHttpClientTransport::from_uri(url);
     let client_info = ClientInfo {
         protocol_version: Default::default(),
@@ -311,7 +335,10 @@ pub async fn list_resources_via_http(url: &str, _config: Option<HashMap<String, 
 }
 
 /// List resources from an MCP server via SSE
-pub async fn list_resources_via_sse(url: &str, _config: Option<HashMap<String, String>>) -> Result<Vec<Resource>> {
+pub async fn list_resources_via_sse(
+    url: &str,
+    _config: Option<HashMap<String, String>>,
+) -> Result<Vec<Resource>> {
     let transport = SseClientTransport::start(url).await.map_err(|e| McpError {
         message: format!("{}", e),
     })?;
@@ -348,10 +375,17 @@ pub async fn list_resources_via_sse(url: &str, _config: Option<HashMap<String, S
 }
 
 /// List resources from an MCP server via command (stdio)
-pub async fn list_resources_via_command(cmd_str: &str, config: Option<HashMap<String, String>>) -> Result<Vec<Resource>> {
+pub async fn list_resources_via_command(
+    cmd_str: &str,
+    config: Option<HashMap<String, String>>,
+) -> Result<Vec<Resource>> {
     let (env_vars, cmd_executable, cmd_args) = disect_command(cmd_str.to_string());
     let (adapted_program, adapted_args, adapted_envs) =
-        CommandWrappedInShellBuilder::wrap_in_shell_as_values(cmd_executable, Some(cmd_args), Some(env_vars));
+        CommandWrappedInShellBuilder::wrap_in_shell_as_values(
+            cmd_executable,
+            Some(cmd_args),
+            Some(env_vars),
+        );
     let mut cmd = Command::new(adapted_program);
     cmd.kill_on_drop(true);
     cmd.envs(adapted_envs);
@@ -419,11 +453,11 @@ pub async fn read_resource_via_http(url: &str, uri: &str) -> Result<String> {
     let text = read_result
         .contents
         .iter()
-        .filter_map(|c| {
-            match c {
-                rmcp::model::ResourceContents::TextResourceContents { text, .. } => Some(text.to_string()),
-                _ => None,
+        .filter_map(|c| match c {
+            rmcp::model::ResourceContents::TextResourceContents { text, .. } => {
+                Some(text.to_string())
             }
+            _ => None,
         })
         .collect::<Vec<_>>()
         .join("\n");
@@ -472,11 +506,11 @@ pub async fn read_resource_via_sse(url: &str, uri: &str) -> Result<String> {
     let text = read_result
         .contents
         .iter()
-        .filter_map(|c| {
-            match c {
-                rmcp::model::ResourceContents::TextResourceContents { text, .. } => Some(text.to_string()),
-                _ => None,
+        .filter_map(|c| match c {
+            rmcp::model::ResourceContents::TextResourceContents { text, .. } => {
+                Some(text.to_string())
             }
+            _ => None,
         })
         .collect::<Vec<_>>()
         .join("\n");
@@ -485,10 +519,18 @@ pub async fn read_resource_via_sse(url: &str, uri: &str) -> Result<String> {
 }
 
 /// Read a resource from an MCP server via command (stdio)
-pub async fn read_resource_via_command(cmd_str: &str, uri: &str, config: Option<HashMap<String, String>>) -> Result<String> {
+pub async fn read_resource_via_command(
+    cmd_str: &str,
+    uri: &str,
+    config: Option<HashMap<String, String>>,
+) -> Result<String> {
     let (env_vars, cmd_executable, cmd_args) = disect_command(cmd_str.to_string());
     let (adapted_program, adapted_args, adapted_envs) =
-        CommandWrappedInShellBuilder::wrap_in_shell_as_values(cmd_executable, Some(cmd_args), Some(env_vars));
+        CommandWrappedInShellBuilder::wrap_in_shell_as_values(
+            cmd_executable,
+            Some(cmd_args),
+            Some(env_vars),
+        );
     let mut cmd = Command::new(adapted_program);
     cmd.kill_on_drop(true);
     cmd.envs(adapted_envs);
@@ -522,11 +564,11 @@ pub async fn read_resource_via_command(cmd_str: &str, uri: &str, config: Option<
     let text = read_result
         .contents
         .iter()
-        .filter_map(|c| {
-            match c {
-                rmcp::model::ResourceContents::TextResourceContents { text, .. } => Some(text.to_string()),
-                _ => None,
+        .filter_map(|c| match c {
+            rmcp::model::ResourceContents::TextResourceContents { text, .. } => {
+                Some(text.to_string())
             }
+            _ => None,
         })
         .collect::<Vec<_>>()
         .join("\n");
@@ -568,15 +610,16 @@ pub mod tests_mcp_manager {
     async fn test_run_tool_via_sse() {
         let mut envs = HashMap::new();
         envs.insert("PORT".to_string(), "8000".to_string());
-        let (adapted_program, adapted_args, adapted_envs) = CommandWrappedInShellBuilder::wrap_in_shell_as_values(
-            "npx".to_string(),
-            Some(vec![
-                "-y".to_string(),
-                "@modelcontextprotocol/server-everything@2025.9.12".to_string(),
-                "sse".to_string(),
-            ]) as Option<Vec<String>>,
-            Some(envs),
-        );
+        let (adapted_program, adapted_args, adapted_envs) =
+            CommandWrappedInShellBuilder::wrap_in_shell_as_values(
+                "npx".to_string(),
+                Some(vec![
+                    "-y".to_string(),
+                    "@modelcontextprotocol/server-everything@2025.9.12".to_string(),
+                    "sse".to_string(),
+                ]) as Option<Vec<String>>,
+                Some(envs),
+            );
 
         let _child_result = Command::new(adapted_program)
             .args(adapted_args)
@@ -593,11 +636,15 @@ pub mod tests_mcp_manager {
         });
         let params_map = params.as_object().unwrap().clone();
 
-        let result = run_tool_via_sse("http://localhost:8000/sse".to_string(), "add".to_string(), params_map)
-            .await
-            .inspect_err(|e| {
-                println!("error {:?}", e);
-            });
+        let result = run_tool_via_sse(
+            "http://localhost:8000/sse".to_string(),
+            "add".to_string(),
+            params_map,
+        )
+        .await
+        .inspect_err(|e| {
+            println!("error {:?}", e);
+        });
         match result {
             Ok(result) => {
                 assert!(result.content.len() == 1);
@@ -612,7 +659,11 @@ pub mod tests_mcp_manager {
 
     #[tokio::test]
     async fn test_list_tools_via_command() {
-        let result = list_tools_via_command("npx -y @modelcontextprotocol/server-everything@2025.9.12", None).await;
+        let result = list_tools_via_command(
+            "npx -y @modelcontextprotocol/server-everything@2025.9.12",
+            None,
+        )
+        .await;
         assert!(result.is_ok());
         let unwrapped = result.unwrap();
 
@@ -656,15 +707,16 @@ pub mod tests_mcp_manager {
     async fn test_list_tools_via_sse() {
         let mut envs = HashMap::new();
         envs.insert("PORT".to_string(), "8001".to_string());
-        let (adapted_program, adapted_args, adapted_envs) = CommandWrappedInShellBuilder::wrap_in_shell_as_values(
-            "npx".to_string(),
-            Some(vec![
-                "-y".to_string(),
-                "@modelcontextprotocol/server-everything@2025.9.12".to_string(),
-                "sse".to_string(),
-            ]) as Option<Vec<String>>,
-            Some(envs),
-        );
+        let (adapted_program, adapted_args, adapted_envs) =
+            CommandWrappedInShellBuilder::wrap_in_shell_as_values(
+                "npx".to_string(),
+                Some(vec![
+                    "-y".to_string(),
+                    "@modelcontextprotocol/server-everything@2025.9.12".to_string(),
+                    "sse".to_string(),
+                ]) as Option<Vec<String>>,
+                Some(envs),
+            );
 
         let _child_result = Command::new(adapted_program)
             .args(adapted_args)
@@ -726,15 +778,16 @@ pub mod tests_mcp_manager {
     async fn test_list_tools_via_http() {
         let mut envs = HashMap::new();
         envs.insert("PORT".to_string(), "8002".to_string());
-        let (adapted_program, adapted_args, adapted_envs) = CommandWrappedInShellBuilder::wrap_in_shell_as_values(
-            "npx".to_string(),
-            Some(vec![
-                "-y".to_string(),
-                "@modelcontextprotocol/server-everything@2025.9.12".to_string(),
-                "streamableHttp".to_string(),
-            ]) as Option<Vec<String>>,
-            Some(envs),
-        );
+        let (adapted_program, adapted_args, adapted_envs) =
+            CommandWrappedInShellBuilder::wrap_in_shell_as_values(
+                "npx".to_string(),
+                Some(vec![
+                    "-y".to_string(),
+                    "@modelcontextprotocol/server-everything@2025.9.12".to_string(),
+                    "streamableHttp".to_string(),
+                ]) as Option<Vec<String>>,
+                Some(envs),
+            );
 
         let _child_result = Command::new(adapted_program)
             .args(adapted_args)
@@ -789,15 +842,16 @@ pub mod tests_mcp_manager {
     async fn test_run_tool_via_http() {
         let mut envs = HashMap::new();
         envs.insert("PORT".to_string(), "8003".to_string());
-        let (adapted_program, adapted_args, adapted_envs) = CommandWrappedInShellBuilder::wrap_in_shell_as_values(
-            "npx".to_string(),
-            Some(vec![
-                "-y".to_string(),
-                "@modelcontextprotocol/server-everything@2025.9.12".to_string(),
-                "streamableHttp".to_string(),
-            ]) as Option<Vec<String>>,
-            Some(envs),
-        );
+        let (adapted_program, adapted_args, adapted_envs) =
+            CommandWrappedInShellBuilder::wrap_in_shell_as_values(
+                "npx".to_string(),
+                Some(vec![
+                    "-y".to_string(),
+                    "@modelcontextprotocol/server-everything@2025.9.12".to_string(),
+                    "streamableHttp".to_string(),
+                ]) as Option<Vec<String>>,
+                Some(envs),
+            );
 
         let _child_result = Command::new(adapted_program)
             .args(adapted_args)
@@ -814,11 +868,15 @@ pub mod tests_mcp_manager {
         });
         let params_map = params.as_object().unwrap().clone();
 
-        let result = run_tool_via_http("http://localhost:8003/mcp".to_string(), "add".to_string(), params_map)
-            .await
-            .inspect_err(|e| {
-                println!("error {:?}", e);
-            });
+        let result = run_tool_via_http(
+            "http://localhost:8003/mcp".to_string(),
+            "add".to_string(),
+            params_map,
+        )
+        .await
+        .inspect_err(|e| {
+            println!("error {:?}", e);
+        });
         match result {
             Ok(result) => {
                 assert!(result.content.len() == 1);

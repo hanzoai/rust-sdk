@@ -12,7 +12,7 @@ use std::sync::Arc;
 pub struct RunContext {
     /// User-provided context data
     context: Option<Arc<dyn Any + Send + Sync>>,
-    
+
     /// Usage statistics
     usage: Usage,
 }
@@ -36,9 +36,7 @@ impl RunContext {
 
     /// Get the user context data
     pub fn context<T: Any + Send + Sync + 'static>(&self) -> Option<&T> {
-        self.context
-            .as_ref()
-            .and_then(|c| c.downcast_ref::<T>())
+        self.context.as_ref().and_then(|c| c.downcast_ref::<T>())
     }
 
     /// Get mutable access to usage statistics

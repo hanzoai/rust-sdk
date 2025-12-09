@@ -2,7 +2,7 @@
 
 use crate::agents::*;
 use crate::tools::ToolRegistry;
-use crate::traits::{Result, SpecializedAgent, AgentError};
+use crate::traits::{AgentError, Result, SpecializedAgent};
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -131,11 +131,20 @@ impl AgentRegistry {
     /// List all available agent types with descriptions
     pub fn list_agents(&self) -> Vec<(AgentType, &'static str)> {
         vec![
-            (AgentType::Architect, "High-level system design and architecture"),
+            (
+                AgentType::Architect,
+                "High-level system design and architecture",
+            ),
             (AgentType::Cto, "Technical leadership and code quality"),
             (AgentType::Reviewer, "Code review and quality assurance"),
-            (AgentType::Explorer, "Codebase exploration and documentation"),
-            (AgentType::Planner, "Task planning and implementation strategy"),
+            (
+                AgentType::Explorer,
+                "Codebase exploration and documentation",
+            ),
+            (
+                AgentType::Planner,
+                "Task planning and implementation strategy",
+            ),
             (AgentType::Scientist, "Research and analysis"),
         ]
     }

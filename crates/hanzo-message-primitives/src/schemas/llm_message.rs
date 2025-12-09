@@ -169,13 +169,19 @@ impl LlmMessage {
         let name = None;
 
         let images = value.get("images").and_then(|v| {
-            v.as_array()
-                .map(|arr| arr.iter().filter_map(|v| v.as_str().map(String::from)).collect())
+            v.as_array().map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str().map(String::from))
+                    .collect()
+            })
         });
 
         let videos = value.get("videos").and_then(|v| {
-            v.as_array()
-                .map(|arr| arr.iter().filter_map(|v| v.as_str().map(String::from)).collect())
+            v.as_array().map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str().map(String::from))
+                    .collect()
+            })
         });
 
         let audios = value.get("audios").and_then(|v| {
@@ -254,8 +260,8 @@ mod tests {
             "type": "function"
         });
 
-        let message =
-            LlmMessage::import_functions_from_value(json_value).expect("Failed to import functions from value");
+        let message = LlmMessage::import_functions_from_value(json_value)
+            .expect("Failed to import functions from value");
 
         assert!(message.role.is_none());
         assert!(message.content.is_none());
@@ -272,24 +278,60 @@ mod tests {
         assert_eq!(function.parameters.type_, "object");
 
         let properties = function.parameters.properties.as_object().unwrap();
-        assert_eq!(properties.get("first_string").unwrap().get("type").unwrap(), "string");
         assert_eq!(
-            properties.get("first_string").unwrap().get("description").unwrap(),
+            properties.get("first_string").unwrap().get("type").unwrap(),
+            "string"
+        );
+        assert_eq!(
+            properties
+                .get("first_string")
+                .unwrap()
+                .get("description")
+                .unwrap(),
             "The first string to concatenate"
         );
-        assert_eq!(properties.get("second_string").unwrap().get("type").unwrap(), "string");
         assert_eq!(
-            properties.get("second_string").unwrap().get("description").unwrap(),
+            properties
+                .get("second_string")
+                .unwrap()
+                .get("type")
+                .unwrap(),
+            "string"
+        );
+        assert_eq!(
+            properties
+                .get("second_string")
+                .unwrap()
+                .get("description")
+                .unwrap(),
             "The second string to concatenate"
         );
-        assert_eq!(properties.get("third_string").unwrap().get("type").unwrap(), "string");
         assert_eq!(
-            properties.get("third_string").unwrap().get("description").unwrap(),
+            properties.get("third_string").unwrap().get("type").unwrap(),
+            "string"
+        );
+        assert_eq!(
+            properties
+                .get("third_string")
+                .unwrap()
+                .get("description")
+                .unwrap(),
             "The third string to concatenate (optional)"
         );
-        assert_eq!(properties.get("fourth_string").unwrap().get("type").unwrap(), "string");
         assert_eq!(
-            properties.get("fourth_string").unwrap().get("description").unwrap(),
+            properties
+                .get("fourth_string")
+                .unwrap()
+                .get("type")
+                .unwrap(),
+            "string"
+        );
+        assert_eq!(
+            properties
+                .get("fourth_string")
+                .unwrap()
+                .get("description")
+                .unwrap(),
             "The fourth string to concatenate (optional)"
         );
 
@@ -324,8 +366,8 @@ mod tests {
             "type": "function"
         });
 
-        let message =
-            LlmMessage::import_functions_from_value(json_value).expect("Failed to import functions from value");
+        let message = LlmMessage::import_functions_from_value(json_value)
+            .expect("Failed to import functions from value");
 
         assert!(message.role.is_none());
         assert!(message.content.is_none());
@@ -343,7 +385,10 @@ mod tests {
 
         let function = &functions[0];
         assert_eq!(function.name, "analyze_audio");
-        assert_eq!(function.description, "Analyzes audio content for speech recognition.");
+        assert_eq!(
+            function.description,
+            "Analyzes audio content for speech recognition."
+        );
     }
 
     #[test]
@@ -422,7 +467,10 @@ mod tests {
             serde_json::from_value(json_value).expect("Failed to convert JSON value to LlmMessage");
 
         assert_eq!(message.role, Some("user".to_string()));
-        assert_eq!(message.content, Some("This is a test message with audio".to_string()));
+        assert_eq!(
+            message.content,
+            Some("This is a test message with audio".to_string())
+        );
         assert!(message.name.is_none());
         assert!(message.functions.is_none());
 

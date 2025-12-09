@@ -1,7 +1,7 @@
 use crate::{
-    schemas::{prompts::Prompt, subprompts::SubPromptType},
-    hanzo_message::hanzo_message::{MessageBody, HanzoMessage},
+    hanzo_message::hanzo_message::{HanzoMessage, MessageBody},
     hanzo_message::hanzo_message_schemas::JobMessage,
+    schemas::{prompts::Prompt, subprompts::SubPromptType},
 };
 use serde_json;
 use std::collections::HashMap;
@@ -20,22 +20,23 @@ impl HanzoMessage {
         };
 
         // Attempt to deserialize the message content into a JobMessage
-        let job_message: JobMessage = match serde_json::from_str(&self.get_message_content().unwrap_or_default()) {
-            Ok(msg) => msg,
-            Err(_) => JobMessage {
-                content: self.get_message_content().unwrap_or_default(),
-                job_id: "".to_string(),
-                reasoning_content: None,
-                parent: None,
-                sheet_job_data: None,
-                callback: None,
-                metadata: None,
-                tool_key: None,
-                fs_files_paths: vec![],
-                job_filenames: vec![],
-                tools: None,
-            },
-        };
+        let job_message: JobMessage =
+            match serde_json::from_str(&self.get_message_content().unwrap_or_default()) {
+                Ok(msg) => msg,
+                Err(_) => JobMessage {
+                    content: self.get_message_content().unwrap_or_default(),
+                    job_id: "".to_string(),
+                    reasoning_content: None,
+                    parent: None,
+                    sheet_job_data: None,
+                    callback: None,
+                    metadata: None,
+                    tool_key: None,
+                    fs_files_paths: vec![],
+                    job_filenames: vec![],
+                    tools: None,
+                },
+            };
 
         // Determine the source of the message based on recipient_subidentity
         let sub_prompt_type = if recipient_subidentity == "main" {
@@ -55,10 +56,10 @@ impl HanzoMessage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::schemas::{inbox_name::InboxName, subprompts::SubPrompt};
     use crate::hanzo_message::hanzo_message_schemas::MessageSchemaType;
     use crate::hanzo_utils::encryption::EncryptionMethod;
     use crate::hanzo_utils::hanzo_message_builder::HanzoMessageBuilder;
+    use crate::schemas::{inbox_name::InboxName, subprompts::SubPrompt};
     use ed25519_dalek::SigningKey;
     use x25519_dalek::{PublicKey as EncryptionPublicKey, StaticSecret as EncryptionStaticKey};
 
@@ -77,24 +78,28 @@ mod tests {
             InboxName::RegularInbox { value, .. } | InboxName::JobInbox { value, .. } => value,
         };
 
-        HanzoMessageBuilder::new(my_encryption_secret_key, my_signature_secret_key, receiver_public_key)
-            .message_raw_content(content.to_string())
-            .body_encryption(EncryptionMethod::None)
-            .message_schema_type(MessageSchemaType::TextContent)
-            .internal_metadata_with_inbox(
-                "".to_string(),
-                recipient_subidentity_name.clone().to_string(),
-                inbox_name_value,
-                EncryptionMethod::None,
-                None,
-            )
-            .external_metadata_with_schedule(
-                origin_destination_identity_name.clone().to_string(),
-                origin_destination_identity_name.clone().to_string(),
-                timestamp,
-            )
-            .build()
-            .unwrap()
+        HanzoMessageBuilder::new(
+            my_encryption_secret_key,
+            my_signature_secret_key,
+            receiver_public_key,
+        )
+        .message_raw_content(content.to_string())
+        .body_encryption(EncryptionMethod::None)
+        .message_schema_type(MessageSchemaType::TextContent)
+        .internal_metadata_with_inbox(
+            "".to_string(),
+            recipient_subidentity_name.clone().to_string(),
+            inbox_name_value,
+            EncryptionMethod::None,
+            None,
+        )
+        .external_metadata_with_schedule(
+            origin_destination_identity_name.clone().to_string(),
+            origin_destination_identity_name.clone().to_string(),
+            timestamp,
+        )
+        .build()
+        .unwrap()
     }
 
     #[test]

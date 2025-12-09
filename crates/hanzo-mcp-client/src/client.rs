@@ -143,13 +143,7 @@ impl McpClient {
         let tools = self.list_server_tools(&config).await?;
 
         let mut servers = self.servers.write().await;
-        servers.insert(
-            config.id.clone(),
-            ServerConnection {
-                config,
-                tools,
-            },
-        );
+        servers.insert(config.id.clone(), ServerConnection { config, tools });
 
         Ok(())
     }
@@ -160,10 +154,10 @@ impl McpClient {
             McpServerSource::Http { url, .. } => {
                 mcp_methods::list_tools_via_http(url, None).await?
             }
-            McpServerSource::Sse { url, .. } => {
-                mcp_methods::list_tools_via_sse(url, None).await?
-            }
-            McpServerSource::Process { command, args, env, .. } => {
+            McpServerSource::Sse { url, .. } => mcp_methods::list_tools_via_sse(url, None).await?,
+            McpServerSource::Process {
+                command, args, env, ..
+            } => {
                 let cmd_str = if args.is_empty() {
                     command.clone()
                 } else {
@@ -173,7 +167,10 @@ impl McpClient {
             }
             McpServerSource::WebSocket { .. } => {
                 // WebSocket not yet implemented in rmcp-based client
-                warn!("WebSocket transport not yet supported, skipping server: {}", config.name);
+                warn!(
+                    "WebSocket transport not yet supported, skipping server: {}",
+                    config.name
+                );
                 return Ok(Vec::new());
             }
         };
@@ -259,9 +256,9 @@ impl McpClient {
                 .ok_or_else(|| McpError::new(format!("Tool not found: {}", tool_name)))?;
 
             let servers = self.servers.read().await;
-            let connection = servers
-                .get(&tool_info.server_id)
-                .ok_or_else(|| McpError::new(format!("Server not found: {}", tool_info.server_id)))?;
+            let connection = servers.get(&tool_info.server_id).ok_or_else(|| {
+                McpError::new(format!("Server not found: {}", tool_info.server_id))
+            })?;
 
             // Extract original tool name (remove prefix if present)
             let original_name = if let Some(prefix) = &connection.config.tool_prefix {
@@ -319,7 +316,9 @@ impl McpClient {
             McpServerSource::Sse { url, .. } => {
                 mcp_methods::run_tool_via_sse(url.clone(), tool_name.to_string(), params).await?
             }
-            McpServerSource::Process { command, args, env, .. } => {
+            McpServerSource::Process {
+                command, args, env, ..
+            } => {
                 let cmd_str = if args.is_empty() {
                     command.clone()
                 } else {
@@ -408,7 +407,10 @@ impl McpClient {
     }
 
     /// List resources from a specific server
-    async fn list_server_resources(&self, config: &McpServerConfig) -> Result<Vec<rmcp::model::Resource>> {
+    async fn list_server_resources(
+        &self,
+        config: &McpServerConfig,
+    ) -> Result<Vec<rmcp::model::Resource>> {
         match &config.source {
             McpServerSource::Http { url, .. } => {
                 mcp_methods::list_resources_via_http(url, None).await
@@ -416,7 +418,9 @@ impl McpClient {
             McpServerSource::Sse { url, .. } => {
                 mcp_methods::list_resources_via_sse(url, None).await
             }
-            McpServerSource::Process { command, args, env, .. } => {
+            McpServerSource::Process {
+                command, args, env, ..
+            } => {
                 let cmd_str = if args.is_empty() {
                     command.clone()
                 } else {
@@ -443,9 +447,9 @@ impl McpClient {
             .ok_or_else(|| McpError::new(format!("Resource not found: {}", uri)))?;
 
         let servers = self.servers.read().await;
-        let connection = servers
-            .get(&resource_info.server_id)
-            .ok_or_else(|| McpError::new(format!("Server not found: {}", resource_info.server_id)))?;
+        let connection = servers.get(&resource_info.server_id).ok_or_else(|| {
+            McpError::new(format!("Server not found: {}", resource_info.server_id))
+        })?;
 
         self.read_server_resource(&connection.config, uri).await
     }
@@ -456,10 +460,10 @@ impl McpClient {
             McpServerSource::Http { url, .. } => {
                 mcp_methods::read_resource_via_http(url, uri).await
             }
-            McpServerSource::Sse { url, .. } => {
-                mcp_methods::read_resource_via_sse(url, uri).await
-            }
-            McpServerSource::Process { command, args, env, .. } => {
+            McpServerSource::Sse { url, .. } => mcp_methods::read_resource_via_sse(url, uri).await,
+            McpServerSource::Process {
+                command, args, env, ..
+            } => {
                 let cmd_str = if args.is_empty() {
                     command.clone()
                 } else {
@@ -467,9 +471,9 @@ impl McpClient {
                 };
                 mcp_methods::read_resource_via_command(&cmd_str, uri, env.clone()).await
             }
-            McpServerSource::WebSocket { .. } => {
-                Err(McpError::new("WebSocket transport not yet supported for resources"))
-            }
+            McpServerSource::WebSocket { .. } => Err(McpError::new(
+                "WebSocket transport not yet supported for resources",
+            )),
         }
     }
 }

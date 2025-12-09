@@ -23,7 +23,7 @@ impl PrivacyTier {
     pub fn meets_requirement(&self, required: PrivacyTier) -> bool {
         *self >= required
     }
-    
+
     /// Get human-readable description
     pub fn description(&self) -> &'static str {
         match self {
@@ -147,51 +147,52 @@ impl RuntimeRequirements {
             },
         }
     }
-    
+
     /// Check if capabilities meet requirements
     pub fn validate(&self, caps: &VendorCapabilities) -> bool {
         // Check minimum tier
         if caps.max_tier() < self.min_tier {
             return false;
         }
-        
+
         // Check specific requirements
         if self.require_sev_snp && !caps.cpu_sev_snp {
             // If specifically requiring SEV-SNP
             return false;
         }
-        
+
         if self.require_tdx && !caps.cpu_tdx {
             // If specifically requiring TDX
             return false;
         }
-        
+
         if self.require_sgx && !caps.cpu_sgx {
             return false;
         }
-        
+
         if self.require_h100_cc && !caps.gpu_h100_cc {
             return false;
         }
-        
+
         if self.require_blackwell_tee_io && !caps.gpu_blackwell_tee_io {
             return false;
         }
-        
+
         if self.require_mig_isolation && !caps.mig_isolated {
             return false;
         }
-        
+
         if self.require_nras_attestation && !caps.nvidia_nras_ok {
             return false;
         }
-        
+
         // For CPU-TEE tier, require at least one CPU TEE technology
         if self.min_tier >= PrivacyTier::AccessCpuTee
-            && !(caps.cpu_sev_snp || caps.cpu_tdx || caps.cpu_sgx || caps.cpu_arm_cca) {
-                return false;
-            }
-        
+            && !(caps.cpu_sev_snp || caps.cpu_tdx || caps.cpu_sgx || caps.cpu_arm_cca)
+        {
+            return false;
+        }
+
         true
     }
 }
@@ -217,7 +218,7 @@ impl CapabilityMatrix {
             policy_hash: None,
         }
     }
-    
+
     /// Update with attestation evidence
     pub fn update_with_evidence(
         &mut self,
@@ -232,10 +233,10 @@ impl CapabilityMatrix {
             std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .unwrap()
-                .as_secs()
+                .as_secs(),
         );
     }
-    
+
     /// Check if attestation is still valid (default 24 hours)
     pub fn is_valid(&self, max_age_secs: u64) -> bool {
         if let Some(timestamp) = self.attestation_timestamp {
@@ -268,7 +269,7 @@ impl KeyReleasePolicy {
             // 24 hour attestation validity
             return false;
         }
-        
+
         // Check requirements
         self.requirements.validate(&matrix.capabilities)
     }
@@ -300,24 +301,24 @@ impl CapabilityToken {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_tier_ordering() {
         assert!(PrivacyTier::AccessGpuTeeIoMax > PrivacyTier::AccessCpuTee);
         assert!(PrivacyTier::AccessCpuTee.meets_requirement(PrivacyTier::AccessAtRest));
         assert!(!PrivacyTier::AccessAtRest.meets_requirement(PrivacyTier::AccessCpuTee));
     }
-    
+
     #[test]
     fn test_capability_validation() {
         let mut caps = VendorCapabilities::default();
         caps.cpu_sev_snp = true;
         caps.gpu_h100_cc = true;
         caps.nvidia_nras_ok = true;
-        
+
         let req = RuntimeRequirements::for_tier(PrivacyTier::AccessCpuTeePlusGpuCc);
         assert!(req.validate(&caps));
-        
+
         // Should fail for Blackwell tier
         let req_max = RuntimeRequirements::for_tier(PrivacyTier::AccessGpuTeeIoMax);
         assert!(!req_max.validate(&caps));

@@ -4,8 +4,8 @@ use async_trait::async_trait;
 use std::collections::HashMap;
 
 use crate::{
-    McpResult, ToolDefinition, ToolResult, ResourceDefinition, PromptDefinition,
-    ServerInfo, ClientInfo, ServerCapabilities,
+    ClientInfo, McpResult, PromptDefinition, ResourceDefinition, ServerCapabilities, ServerInfo,
+    ToolDefinition, ToolResult,
 };
 
 /// Trait for MCP tool implementations
@@ -33,11 +33,7 @@ pub trait McpClient: Send + Sync {
     async fn list_tools(&self) -> McpResult<Vec<ToolDefinition>>;
 
     /// Call a tool by name with parameters
-    async fn call_tool(
-        &self,
-        name: &str,
-        params: serde_json::Value,
-    ) -> McpResult<ToolResult>;
+    async fn call_tool(&self, name: &str, params: serde_json::Value) -> McpResult<ToolResult>;
 
     /// List available resources (if supported)
     async fn list_resources(&self) -> McpResult<Vec<ResourceDefinition>> {
@@ -46,7 +42,9 @@ pub trait McpClient: Send + Sync {
 
     /// Read a resource by URI (if supported)
     async fn read_resource(&self, _uri: &str) -> McpResult<String> {
-        Err(crate::McpError::ResourceNotFound("Resources not supported".to_string()))
+        Err(crate::McpError::ResourceNotFound(
+            "Resources not supported".to_string(),
+        ))
     }
 
     /// List available prompts (if supported)
@@ -55,12 +53,10 @@ pub trait McpClient: Send + Sync {
     }
 
     /// Get a prompt by name (if supported)
-    async fn get_prompt(
-        &self,
-        _name: &str,
-        _args: HashMap<String, String>,
-    ) -> McpResult<String> {
-        Err(crate::McpError::ResourceNotFound("Prompts not supported".to_string()))
+    async fn get_prompt(&self, _name: &str, _args: HashMap<String, String>) -> McpResult<String> {
+        Err(crate::McpError::ResourceNotFound(
+            "Prompts not supported".to_string(),
+        ))
     }
 
     /// Close the connection
@@ -85,11 +81,7 @@ pub trait McpServer: Send + Sync {
     async fn list_tools(&self) -> McpResult<Vec<ToolDefinition>>;
 
     /// Execute a tool
-    async fn call_tool(
-        &self,
-        name: &str,
-        params: serde_json::Value,
-    ) -> McpResult<ToolResult>;
+    async fn call_tool(&self, name: &str, params: serde_json::Value) -> McpResult<ToolResult>;
 
     /// List available resources
     async fn list_resources(&self) -> McpResult<Vec<ResourceDefinition>> {
@@ -98,7 +90,9 @@ pub trait McpServer: Send + Sync {
 
     /// Read a resource
     async fn read_resource(&self, _uri: &str) -> McpResult<String> {
-        Err(crate::McpError::ResourceNotFound("Resources not supported".to_string()))
+        Err(crate::McpError::ResourceNotFound(
+            "Resources not supported".to_string(),
+        ))
     }
 
     /// List available prompts
@@ -107,12 +101,10 @@ pub trait McpServer: Send + Sync {
     }
 
     /// Get a prompt
-    async fn get_prompt(
-        &self,
-        _name: &str,
-        _args: HashMap<String, String>,
-    ) -> McpResult<String> {
-        Err(crate::McpError::ResourceNotFound("Prompts not supported".to_string()))
+    async fn get_prompt(&self, _name: &str, _args: HashMap<String, String>) -> McpResult<String> {
+        Err(crate::McpError::ResourceNotFound(
+            "Prompts not supported".to_string(),
+        ))
     }
 }
 

@@ -2,8 +2,12 @@
 mod tests {
 
     use hanzo_message_primitives::{
-        hanzo_message::hanzo_message::{EncryptedHanzoBody, EncryptedHanzoData, MessageBody, MessageData},
-        hanzo_utils::encryption::{string_to_encryption_public_key, unsafe_deterministic_encryption_keypair},
+        hanzo_message::hanzo_message::{
+            EncryptedHanzoBody, EncryptedHanzoData, MessageBody, MessageData,
+        },
+        hanzo_utils::encryption::{
+            string_to_encryption_public_key, unsafe_deterministic_encryption_keypair,
+        },
     };
 
     #[test]
@@ -15,11 +19,13 @@ mod tests {
 
         let (my_encryption_sk, _my_encryption_pk) = unsafe_deterministic_encryption_keypair(0);
         // let pk_string = encryption_public_key_to_string(my_encryption_pk);
-        let sender_pk =
-            string_to_encryption_public_key("3139fa22bc37ea6266d72a696a930777dec58123254f4a8ab41724421adb2949")
-                .unwrap();
+        let sender_pk = string_to_encryption_public_key(
+            "3139fa22bc37ea6266d72a696a930777dec58123254f4a8ab41724421adb2949",
+        )
+        .unwrap();
 
-        let result = MessageBody::decrypt_message_body(&encrypted_data, &my_encryption_sk, &sender_pk);
+        let result =
+            MessageBody::decrypt_message_body(&encrypted_data, &my_encryption_sk, &sender_pk);
         eprintln!("result: {:?}", result);
         assert!(result.is_ok());
     }
@@ -33,11 +39,13 @@ mod tests {
 
         let (my_encryption_sk, _my_encryption_pk) = unsafe_deterministic_encryption_keypair(0);
         // let pk_string = encryption_public_key_to_string(my_encryption_pk);
-        let sender_pk =
-            string_to_encryption_public_key("3139fa22bc37ea6266d72a696a930777dec58123254f4a8ab41724421adb2949")
-                .unwrap();
+        let sender_pk = string_to_encryption_public_key(
+            "3139fa22bc37ea6266d72a696a930777dec58123254f4a8ab41724421adb2949",
+        )
+        .unwrap();
 
-        let result = MessageData::decrypt_message_data(&encrypted_data, &my_encryption_sk, &sender_pk);
+        let result =
+            MessageData::decrypt_message_data(&encrypted_data, &my_encryption_sk, &sender_pk);
         eprintln!("result: {:?}", result);
         assert!(result.is_ok());
     }
@@ -50,11 +58,13 @@ mod tests {
         };
 
         let (my_encryption_sk, _my_encryption_pk) = unsafe_deterministic_encryption_keypair(0);
-        let sender_pk =
-            string_to_encryption_public_key("3139fa22bc37ea6266d72a696a930777dec58123254f4a8ab41724421adb2949")
-                .unwrap();
+        let sender_pk = string_to_encryption_public_key(
+            "3139fa22bc37ea6266d72a696a930777dec58123254f4a8ab41724421adb2949",
+        )
+        .unwrap();
 
-        let result = MessageBody::decrypt_message_body(&encrypted_data, &my_encryption_sk, &sender_pk);
+        let result =
+            MessageBody::decrypt_message_body(&encrypted_data, &my_encryption_sk, &sender_pk);
         eprintln!("result: {:?}", result);
         assert!(result.is_ok());
     }

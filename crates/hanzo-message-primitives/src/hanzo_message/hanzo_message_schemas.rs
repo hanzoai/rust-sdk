@@ -1,14 +1,16 @@
+use crate::hanzo_utils::hanzo_path::HanzoPath;
+use crate::hanzo_utils::job_scope::MinimalJobScope;
 use crate::schemas::hanzo_tools::DynamicToolType;
 use crate::schemas::tool_router_key::ToolRouterKey;
-use crate::schemas::{inbox_name::InboxName, llm_providers::serialized_llm_provider::SerializedLLMProvider};
-use crate::hanzo_utils::job_scope::MinimalJobScope;
-use crate::hanzo_utils::hanzo_path::HanzoPath;
+use crate::schemas::{
+    inbox_name::InboxName, llm_providers::serialized_llm_provider::SerializedLLMProvider,
+};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt;
 use utoipa::ToSchema;
 
-use super::hanzo_message::{NodeApiData, HanzoMessage};
+use super::hanzo_message::{HanzoMessage, NodeApiData};
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, ToSchema)]
 pub enum MessageSchemaType {
@@ -104,7 +106,9 @@ impl MessageSchemaType {
             "VecFsRetrieveVectorResource" => Some(Self::VecFsRetrieveVectorResource),
             "VecFsRetrieveVRKai" => Some(Self::VecFsRetrieveVRKai),
             "VecFsRetrieveVRPack" => Some(Self::VecFsRetrieveVRPack),
-            "VecFsRetrieveVectorSearchSimplifiedJson" => Some(Self::VecFsRetrieveVectorSearchSimplifiedJson),
+            "VecFsRetrieveVectorSearchSimplifiedJson" => {
+                Some(Self::VecFsRetrieveVectorSearchSimplifiedJson)
+            }
             "VecFsSearchItems" => Some(Self::VecFsSearchItems),
             "VecFsCreateFolder" => Some(Self::VecFsCreateFolder),
             "VecFsDeleteFolder" => Some(Self::VecFsDeleteFolder),
@@ -172,7 +176,9 @@ impl MessageSchemaType {
             Self::VecFsRetrieveVectorResource => "VecFsRetrieveVectorResource",
             Self::VecFsRetrieveVRKai => "VecFsRetrieveVRKai",
             Self::VecFsRetrieveVRPack => "VecFsRetrieveVRPack",
-            Self::VecFsRetrieveVectorSearchSimplifiedJson => "VecFsRetrieveVectorSearchSimplifiedJson",
+            Self::VecFsRetrieveVectorSearchSimplifiedJson => {
+                "VecFsRetrieveVectorSearchSimplifiedJson"
+            }
             Self::VecFsSearchItems => "VecFsSearchItems",
             Self::VecFsCreateFolder => "VecFsCreateFolder",
             Self::VecFsDeleteFolder => "VecFsDeleteFolder",
@@ -650,10 +656,12 @@ mod tests {
         };
 
         // Test serialization
-        let serialized = serde_json::to_string(&job_message).expect("Failed to serialize JobMessage");
+        let serialized =
+            serde_json::to_string(&job_message).expect("Failed to serialize JobMessage");
 
         // Test deserialization
-        let deserialized: JobMessage = serde_json::from_str(&serialized).expect("Failed to deserialize JobMessage");
+        let deserialized: JobMessage =
+            serde_json::from_str(&serialized).expect("Failed to deserialize JobMessage");
 
         assert_eq!(job_message, deserialized);
     }
@@ -674,7 +682,8 @@ mod tests {
             job_filenames: vec![],
         };
 
-        let serialized = serde_json::to_string(&minimal_message).expect("Failed to serialize minimal JobMessage");
+        let serialized = serde_json::to_string(&minimal_message)
+            .expect("Failed to serialize minimal JobMessage");
         let deserialized: JobMessage =
             serde_json::from_str(&serialized).expect("Failed to deserialize minimal JobMessage");
 

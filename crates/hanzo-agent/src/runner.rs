@@ -16,16 +16,16 @@ pub const DEFAULT_MAX_TURNS: usize = 10;
 pub struct RunConfig {
     /// Maximum number of turns (LLM invocations)
     pub max_turns: usize,
-    
+
     /// The API base URL for the LLM provider
     pub api_base: String,
-    
+
     /// API key for authentication
     pub api_key: Option<String>,
-    
+
     /// Global model settings override
     pub model_settings: Option<ModelSettings>,
-    
+
     /// Whether to include tool calls in the context
     pub include_tool_calls: bool,
 }
@@ -110,26 +110,16 @@ impl Runner {
             }
 
             // Get response from LLM
-            let response = Self::call_llm(
-                current_agent,
-                &system_messages,
-                &messages,
-                config,
-                &mut ctx,
-            )
-            .await?;
+            let response =
+                Self::call_llm(current_agent, &system_messages, &messages, config, &mut ctx)
+                    .await?;
 
             model_responses.push(response.clone());
             ctx.add_usage(&response.usage);
 
             // Process the response
-            let (next_step, new_items) = Self::process_response(
-                current_agent,
-                response,
-                &mut ctx,
-                config,
-            )
-            .await?;
+            let (next_step, new_items) =
+                Self::process_response(current_agent, response, &mut ctx, config).await?;
 
             generated_items.extend(new_items);
 
@@ -168,7 +158,7 @@ impl Runner {
         _ctx: &mut RunContext,
     ) -> Result<ModelResponse> {
         let client = reqwest::Client::new();
-        
+
         // Build the request body
         let mut all_messages = Vec::new();
         all_messages.extend(Self::items_to_openai_messages(system_messages));
@@ -199,7 +189,10 @@ impl Runner {
         }
 
         // Add model settings
-        let settings = config.model_settings.as_ref().unwrap_or(&agent.model_settings);
+        let settings = config
+            .model_settings
+            .as_ref()
+            .unwrap_or(&agent.model_settings);
         if let Some(temp) = settings.temperature {
             body["temperature"] = json!(temp);
         }
@@ -270,11 +263,9 @@ impl Runner {
                 let name = function["name"]
                     .as_str()
                     .ok_or_else(|| AgentError::ModelBehavior("Missing tool name".to_string()))?;
-                let args = function["arguments"]
-                    .as_str()
-                    .ok_or_else(|| {
-                        AgentError::ModelBehavior("Missing tool arguments".to_string())
-                    })?;
+                let args = function["arguments"].as_str().ok_or_else(|| {
+                    AgentError::ModelBehavior("Missing tool arguments".to_string())
+                })?;
 
                 output.push(RunItem::ToolCall {
                     id: id.to_string(),
@@ -317,7 +308,12 @@ impl Runner {
             .output
             .iter()
             .filter_map(|item| {
-                if let RunItem::ToolCall { id, name, arguments } = item {
+                if let RunItem::ToolCall {
+                    id,
+                    name,
+                    arguments,
+                } = item
+                {
                     Some((id.clone(), name.clone(), arguments.clone()))
                 } else {
                     None
@@ -349,12 +345,13 @@ impl Runner {
                     })?;
 
                 debug!("Invoking tool: {}", name);
-                let result = tool.invoke(ctx, &args).await.map_err(|e| {
-                    AgentError::ToolError {
+                let result = tool
+                    .invoke(ctx, &args)
+                    .await
+                    .map_err(|e| AgentError::ToolError {
                         tool_name: name.clone(),
                         message: e.to_string(),
-                    }
-                })?;
+                    })?;
 
                 new_items.push(RunItem::ToolResult {
                     tool_call_id: id,
@@ -410,10 +407,10 @@ impl Runner {
 enum NextStep {
     /// Agent produced final output
     FinalOutput(String),
-    
+
     /// Run the agent again (after tool execution)
     RunAgain,
-    
+
     /// Handoff to another agent
     Handoff(Agent),
 }

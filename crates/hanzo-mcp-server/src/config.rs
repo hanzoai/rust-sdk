@@ -64,7 +64,7 @@ impl Config {
         let config: Config = toml::from_str(&content)?;
         Ok(config)
     }
-    
+
     pub fn save(&self, path: &Path) -> Result<()> {
         let content = toml::to_string_pretty(self)?;
         std::fs::write(path, content)?;

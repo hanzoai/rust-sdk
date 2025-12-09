@@ -142,7 +142,10 @@ mod tests {
             hash1, hash2,
             "Commands with leading/trailing spaces should have same hash"
         );
-        assert_eq!(hash1, hash3, "Commands with tabs/newlines should have same hash");
+        assert_eq!(
+            hash1, hash3,
+            "Commands with tabs/newlines should have same hash"
+        );
         assert_eq!(hash1.len(), 12, "Hash should be exactly 12 characters long");
     }
 
@@ -154,7 +157,10 @@ mod tests {
         let hash1 = server1.get_command_hash();
         let hash2 = server2.get_command_hash();
 
-        assert_ne!(hash1, hash2, "Different commands should produce different hashes");
+        assert_ne!(
+            hash1, hash2,
+            "Different commands should produce different hashes"
+        );
         assert_eq!(hash1.len(), 12, "Hash should be exactly 12 characters long");
         assert_eq!(hash2.len(), 12, "Hash should be exactly 12 characters long");
     }
@@ -167,7 +173,10 @@ mod tests {
         let hash1 = server1.get_command_hash();
         let hash2 = server2.get_command_hash();
 
-        assert_eq!(hash1, hash2, "Servers with no command should have same hash");
+        assert_eq!(
+            hash1, hash2,
+            "Servers with no command should have same hash"
+        );
         assert_eq!(hash1.len(), 12, "Hash should be exactly 12 characters long");
     }
 

@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 pub enum InputItem {
     #[serde(rename = "message")]
     Message { role: String, content: String },
-    
+
     #[serde(rename = "tool_result")]
     ToolResult {
         tool_call_id: String,
@@ -48,14 +48,14 @@ impl InputItem {
 pub enum RunItem {
     #[serde(rename = "message")]
     Message { role: String, content: String },
-    
+
     #[serde(rename = "tool_call")]
     ToolCall {
         id: String,
         name: String,
         arguments: String,
     },
-    
+
     #[serde(rename = "tool_result")]
     ToolResult {
         tool_call_id: String,
@@ -91,10 +91,10 @@ impl RunItem {
 pub struct ModelResponse {
     /// The output items (messages, tool calls, etc.)
     pub output: Vec<RunItem>,
-    
+
     /// Usage statistics
     pub usage: Usage,
-    
+
     /// Response ID for reference
     pub id: Option<String>,
 }
@@ -123,13 +123,13 @@ impl Usage {
 pub struct ModelSettings {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub temperature: Option<f32>,
-    
+
     #[serde(skip_serializing_if = "Option::is_none")]
     pub top_p: Option<f32>,
-    
+
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_tokens: Option<usize>,
-    
+
     #[serde(skip_serializing_if = "Option::is_none")]
     pub stop: Option<Vec<String>>,
 }

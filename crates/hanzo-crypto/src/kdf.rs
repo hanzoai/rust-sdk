@@ -1,11 +1,11 @@
-//! Key Derivation Functions (KDF) 
+//! Key Derivation Functions (KDF)
 //! SP 800-56C compliant HKDF and SP 800-108 compliant KDF
 
+use crate::{PqcError, Result};
 use hkdf::Hkdf;
+use serde::{Deserialize, Serialize};
 use sha2::{Sha256, Sha384, Sha512};
 use sha3::{Sha3_256, Sha3_384, Sha3_512};
-use serde::{Deserialize, Serialize};
-use crate::{PqcError, Result};
 
 /// KDF algorithms (SP 800-56C and SP 800-108 compliant)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -36,12 +36,18 @@ impl Default for KdfAlgorithm {
 pub trait Kdf {
     /// Extract a pseudorandom key from input keying material
     fn extract(&self, salt: Option<&[u8]>, ikm: &[u8]) -> Vec<u8>;
-    
+
     /// Expand a pseudorandom key to desired length
     fn expand(&self, prk: &[u8], info: &[u8], okm_len: usize) -> Result<Vec<u8>>;
-    
+
     /// Combined extract-and-expand operation
-    fn derive(&self, salt: Option<&[u8]>, ikm: &[u8], info: &[u8], okm_len: usize) -> Result<Vec<u8>>;
+    fn derive(
+        &self,
+        salt: Option<&[u8]>,
+        ikm: &[u8],
+        info: &[u8],
+        okm_len: usize,
+    ) -> Result<Vec<u8>>;
 }
 
 /// Generic HKDF implementation
@@ -85,17 +91,18 @@ impl Kdf for HkdfKdf {
             KdfAlgorithm::Blake3Kdf => {
                 // BLAKE3 has its own KDF mode
                 let key = blake3::derive_key(
-                    salt.map(|s| std::str::from_utf8(s).unwrap_or("hanzo-pqc")).unwrap_or("hanzo-pqc"),
+                    salt.map(|s| std::str::from_utf8(s).unwrap_or("hanzo-pqc"))
+                        .unwrap_or("hanzo-pqc"),
                     ikm,
                 );
                 key.to_vec()
             }
         }
     }
-    
+
     fn expand(&self, prk: &[u8], info: &[u8], okm_len: usize) -> Result<Vec<u8>> {
         let mut okm = vec![0u8; okm_len];
-        
+
         match self.algorithm {
             KdfAlgorithm::HkdfSha256 => {
                 let hk = Hkdf::<Sha256>::from_prk(prk)
@@ -137,18 +144,24 @@ impl Kdf for HkdfKdf {
                 // BLAKE3 XOF mode for expansion
                 let mut hasher = blake3::Hasher::new_keyed(
                     &<[u8; 32]>::try_from(&prk[..32])
-                        .map_err(|_| PqcError::KdfError("BLAKE3 requires 32-byte key".into()))?
+                        .map_err(|_| PqcError::KdfError("BLAKE3 requires 32-byte key".into()))?,
                 );
                 hasher.update(info);
                 let mut output = hasher.finalize_xof();
                 output.fill(&mut okm);
             }
         }
-        
+
         Ok(okm)
     }
-    
-    fn derive(&self, salt: Option<&[u8]>, ikm: &[u8], info: &[u8], okm_len: usize) -> Result<Vec<u8>> {
+
+    fn derive(
+        &self,
+        salt: Option<&[u8]>,
+        ikm: &[u8],
+        info: &[u8],
+        okm_len: usize,
+    ) -> Result<Vec<u8>> {
         let prk = self.extract(salt, ikm);
         self.expand(&prk, info, okm_len)
     }
@@ -168,7 +181,7 @@ pub fn combine_shared_secrets(
         combined.extend_from_slice(&(secret.len() as u32).to_be_bytes());
         combined.extend_from_slice(secret);
     }
-    
+
     // Derive final key material with context
     kdf.derive(None, &combined, context, output_len)
 }
@@ -187,37 +200,33 @@ pub fn domain_separate(
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_hkdf_sha384() {
         let kdf = HkdfKdf::new(KdfAlgorithm::HkdfSha384);
-        
+
         let ikm = b"input keying material";
         let salt = b"salt";
         let info = b"hanzo-test-v1";
-        
+
         let okm = kdf.derive(Some(salt), ikm, info, 64).unwrap();
         assert_eq!(okm.len(), 64);
-        
+
         // Verify deterministic
         let okm2 = kdf.derive(Some(salt), ikm, info, 64).unwrap();
         assert_eq!(okm, okm2);
     }
-    
+
     #[test]
     fn test_combine_secrets() {
         let kdf = HkdfKdf::new(KdfAlgorithm::HkdfSha384);
-        
+
         let secret1 = vec![1u8; 32]; // ML-KEM shared secret
         let secret2 = vec![2u8; 32]; // X25519 shared secret
-        
-        let combined = combine_shared_secrets(
-            &kdf,
-            &[&secret1, &secret2],
-            b"hanzo-hybrid-v1",
-            48,
-        ).unwrap();
-        
+
+        let combined =
+            combine_shared_secrets(&kdf, &[&secret1, &secret2], b"hanzo-hybrid-v1", 48).unwrap();
+
         assert_eq!(combined.len(), 48);
     }
 }

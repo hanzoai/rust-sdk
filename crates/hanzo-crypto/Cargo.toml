@@ -21,6 +21,7 @@ hybrid = ["x25519-dalek"]
 fips-mode = []
 gpu-cc = []
 tee-io = []
+cpu-tee = []
 
 [dependencies]
 # Core PQC implementation - using pure-Rust saorsa-pqc

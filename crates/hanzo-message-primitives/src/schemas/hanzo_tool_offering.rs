@@ -79,7 +79,10 @@ impl ToolPrice {
             ToolPrice::Payment(payments) => {
                 for payment in payments {
                     if payment.asset == "USDC" {
-                        return payment.max_amount_required.parse::<f32>().unwrap_or(999_999_999.0);
+                        return payment
+                            .max_amount_required
+                            .parse::<f32>()
+                            .unwrap_or(999_999_999.0);
                     }
                 }
                 999_999_999.0 // Return 999_999_999 if USDC is not found
@@ -118,10 +121,17 @@ mod tests {
             "meta_description": "A tool for testing"
         }"#;
 
-        let offering: HanzoToolOffering = serde_json::from_str(json).expect("Failed to convert from JSON");
+        let offering: HanzoToolOffering =
+            serde_json::from_str(json).expect("Failed to convert from JSON");
         assert_eq!(offering.tool_key, "test_tool");
-        assert_eq!(offering.meta_description, Some("A tool for testing".to_string()));
-        assert!(matches!(offering.usage_type, UsageType::PerUse(ToolPrice::Free)));
+        assert_eq!(
+            offering.meta_description,
+            Some("A tool for testing".to_string())
+        );
+        assert!(matches!(
+            offering.usage_type,
+            UsageType::PerUse(ToolPrice::Free)
+        ));
     }
 
     #[test]

@@ -1,12 +1,9 @@
 //! Wire protocol for PQC-enabled P2P handshake and key exchange
 
-use serde::{Deserialize, Serialize};
 use crate::{
-    hybrid::HybridCiphertext,
-    signature::DigitalSignature,
-    privacy_tiers::PrivacyTier,
-    Result,
+    hybrid::HybridCiphertext, privacy_tiers::PrivacyTier, signature::DigitalSignature, Result,
 };
+use serde::{Deserialize, Serialize};
 
 /// P2P handshake message with PQC support
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -34,10 +31,10 @@ pub struct HandshakeMessage {
 /// Cipher suite definition
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CipherSuite {
-    pub kem: String,        // e.g., "ML-KEM-768", "ML-KEM-768+X25519"
-    pub sig: String,        // e.g., "ML-DSA-65", "Ed25519"
-    pub aead: String,       // e.g., "ChaCha20-Poly1305", "AES-256-GCM"
-    pub kdf: String,        // e.g., "HKDF-SHA384"
+    pub kem: String,  // e.g., "ML-KEM-768", "ML-KEM-768+X25519"
+    pub sig: String,  // e.g., "ML-DSA-65", "Ed25519"
+    pub aead: String, // e.g., "ChaCha20-Poly1305", "AES-256-GCM"
+    pub kdf: String,  // e.g., "HKDF-SHA384"
 }
 
 impl CipherSuite {
@@ -50,7 +47,7 @@ impl CipherSuite {
             kdf: "HKDF-SHA384".to_string(),
         }
     }
-    
+
     /// Hybrid suite (ML-KEM-768+X25519)
     pub fn default_hybrid() -> Self {
         Self {
@@ -60,7 +57,7 @@ impl CipherSuite {
             kdf: "HKDF-SHA384".to_string(),
         }
     }
-    
+
     /// Legacy suite for backward compatibility
     pub fn legacy() -> Self {
         Self {
@@ -78,7 +75,7 @@ pub struct KeyReleaseRequest {
     pub lease_id: String,
     pub node_mode: NodeMode,
     pub node_id: String,
-    pub eid: Option<String>,  // SIM EID if available
+    pub eid: Option<String>, // SIM EID if available
     pub attestation: Option<AttestationBundle>,
     pub mlkem_encap_key: Vec<u8>,
     pub privacy_tier: PrivacyTier,
@@ -140,7 +137,7 @@ pub enum GpuType {
 /// KBS key release response
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct KeyReleaseResponse {
-    pub enc_dek: Vec<u8>,  // ML-KEM encrypted DEK
+    pub enc_dek: Vec<u8>, // ML-KEM encrypted DEK
     pub aead_alg: String,
     pub key_release_cert: KeyReleaseCertificate,
     pub capability_token: Vec<u8>,
@@ -153,9 +150,9 @@ pub struct KeyReleaseCertificate {
     pub node_id: String,
     pub measurement: Option<Vec<u8>>,
     pub timestamp: u64,
-    pub orr_digest: Vec<u8>,  // Operational Reference Record
+    pub orr_digest: Vec<u8>, // Operational Reference Record
     pub privacy_tier: PrivacyTier,
-    pub signature: DigitalSignature,  // ML-DSA-65 signature
+    pub signature: DigitalSignature, // ML-DSA-65 signature
 }
 
 /// Transcript for signature verification
@@ -169,13 +166,13 @@ impl HandshakeTranscript {
             messages: Vec::new(),
         }
     }
-    
+
     pub fn add_message(&mut self, msg: &[u8]) {
         self.messages.push(msg.to_vec());
     }
-    
+
     pub fn get_hash(&self) -> [u8; 32] {
-        use sha2::{Sha256, Digest};
+        use sha2::{Digest, Sha256};
         let mut hasher = Sha256::new();
         for msg in &self.messages {
             hasher.update(&(msg.len() as u32).to_be_bytes());
@@ -189,13 +186,13 @@ impl HandshakeTranscript {
 pub mod constants {
     /// Current protocol version
     pub const PROTOCOL_VERSION: u8 = 1;
-    
+
     /// Maximum handshake message size
     pub const MAX_HANDSHAKE_SIZE: usize = 16384;
-    
+
     /// Session timeout (seconds)
     pub const SESSION_TIMEOUT: u64 = 3600;
-    
+
     /// Domain separation labels
     pub const LABEL_HANDSHAKE: &str = "hanzo-pqc-handshake-v1";
     pub const LABEL_KEY_RELEASE: &str = "hanzo-pqc-key-release-v1";
@@ -205,30 +202,30 @@ pub mod constants {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_cipher_suites() {
         let pqc = CipherSuite::default_pqc();
         assert_eq!(pqc.kem, "ML-KEM-768");
         assert_eq!(pqc.sig, "ML-DSA-65");
-        
+
         let hybrid = CipherSuite::default_hybrid();
         assert!(hybrid.kem.contains("X25519"));
     }
-    
+
     #[test]
     fn test_transcript_hash() {
         let mut transcript = HandshakeTranscript::new();
         transcript.add_message(b"message1");
         transcript.add_message(b"message2");
-        
+
         let hash1 = transcript.get_hash();
-        
+
         // Verify deterministic
         let mut transcript2 = HandshakeTranscript::new();
         transcript2.add_message(b"message1");
         transcript2.add_message(b"message2");
-        
+
         assert_eq!(hash1, transcript2.get_hash());
     }
 }

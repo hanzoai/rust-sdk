@@ -1,13 +1,15 @@
 //! Attestation support for TEE environments
 
+#[cfg(feature = "cpu-tee")]
+use crate::PqcError;
+use crate::Result;
 use serde::{Deserialize, Serialize};
-use crate::{PqcError, Result};
 
 /// TEE attestation verifier trait
 pub trait AttestationVerifier: Send + Sync {
     /// Verify CPU TEE attestation
     fn verify_cpu_attestation(&self, quote: &[u8], expected_measurement: &[u8]) -> Result<bool>;
-    
+
     /// Verify GPU attestation via NRAS
     fn verify_gpu_attestation(&self, nras_token: &[u8]) -> Result<GpuAttestationResult>;
 }
@@ -47,7 +49,7 @@ impl AttestationVerifier for MockAttestationVerifier {
         // 4. Validate freshness/nonce
         Ok(true)
     }
-    
+
     fn verify_gpu_attestation(&self, _nras_token: &[u8]) -> Result<GpuAttestationResult> {
         // In production, this would:
         // 1. Send token to NVIDIA Remote Attestation Service
@@ -70,7 +72,7 @@ impl AttestationVerifier for MockAttestationVerifier {
 #[cfg(feature = "cpu-tee")]
 pub mod sev_snp {
     use super::*;
-    
+
     #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct SevSnpReport {
         pub version: u32,
@@ -94,13 +96,15 @@ pub mod sev_snp {
         pub chip_id: [u8; 64],
         pub signature: [u8; 512],
     }
-    
+
     impl SevSnpReport {
         pub fn parse(data: &[u8]) -> Result<Self> {
             if data.len() < 1184 {
-                return Err(PqcError::AttestationError("Invalid SEV-SNP report size".into()));
+                return Err(PqcError::AttestationError(
+                    "Invalid SEV-SNP report size".into(),
+                ));
             }
-            
+
             // Parse binary format (simplified)
             Ok(Self {
                 version: u32::from_le_bytes([data[0], data[1], data[2], data[3]]),
@@ -132,7 +136,7 @@ pub mod sev_snp {
 #[cfg(feature = "cpu-tee")]
 pub mod tdx {
     use super::*;
-    
+
     #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct TdxQuote {
         pub version: u16,
@@ -143,13 +147,13 @@ pub mod tdx {
         pub user_data: [u8; 20],
         pub report_data: [u8; 64],
     }
-    
+
     impl TdxQuote {
         pub fn parse(data: &[u8]) -> Result<Self> {
             if data.len() < 584 {
                 return Err(PqcError::AttestationError("Invalid TDX quote size".into()));
             }
-            
+
             Ok(Self {
                 version: u16::from_le_bytes([data[0], data[1]]),
                 attestation_key_type: u16::from_le_bytes([data[2], data[3]]),

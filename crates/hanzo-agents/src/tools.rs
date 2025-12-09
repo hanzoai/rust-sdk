@@ -13,8 +13,9 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 
 /// Callback type for tool execution
-pub type ToolCallback =
-    Arc<dyn Fn(serde_json::Value) -> futures::future::BoxFuture<'static, Result<String>> + Send + Sync>;
+pub type ToolCallback = Arc<
+    dyn Fn(serde_json::Value) -> futures::future::BoxFuture<'static, Result<String>> + Send + Sync,
+>;
 
 /// A registered tool with its callback
 pub struct RegisteredTool {
@@ -173,8 +174,14 @@ impl ToolRegistry {
                 })
             });
 
-            self.register(definition, callback, ToolSource::Mcp { server_name: server_name.clone() })
-                .await;
+            self.register(
+                definition,
+                callback,
+                ToolSource::Mcp {
+                    server_name: server_name.clone(),
+                },
+            )
+            .await;
 
             registered_names.push(prefixed_name);
         }
@@ -194,12 +201,10 @@ impl ToolRegistry {
     /// Execute a tool by name
     pub async fn execute(&self, name: &str, args: serde_json::Value) -> Result<String> {
         let tools = self.tools.read().await;
-        let tool = tools
-            .get(name)
-            .ok_or_else(|| AgentError::ToolError {
-                tool_name: name.to_string(),
-                message: "Tool not found".to_string(),
-            })?;
+        let tool = tools.get(name).ok_or_else(|| AgentError::ToolError {
+            tool_name: name.to_string(),
+            message: "Tool not found".to_string(),
+        })?;
 
         (tool.callback)(args).await
     }
@@ -299,12 +304,17 @@ mod tests {
         let registry = ToolRegistry::new();
 
         let definition = ToolDefinition::new("test_tool", "A test tool");
-        let callback: ToolCallback = Arc::new(|_args| {
-            Box::pin(async { Ok("test result".to_string()) })
-        });
+        let callback: ToolCallback =
+            Arc::new(|_args| Box::pin(async { Ok("test result".to_string()) }));
 
         registry
-            .register(definition, callback, ToolSource::Custom { source: "test".to_string() })
+            .register(
+                definition,
+                callback,
+                ToolSource::Custom {
+                    source: "test".to_string(),
+                },
+            )
             .await;
 
         let tools = registry.list().await;

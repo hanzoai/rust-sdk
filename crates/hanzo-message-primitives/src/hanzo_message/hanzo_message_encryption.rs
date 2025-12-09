@@ -1,7 +1,8 @@
 use crate::hanzo_utils::encryption::EncryptionMethod;
 
 use super::hanzo_message::{
-    EncryptedHanzoBody, EncryptedHanzoData, MessageBody, MessageData, HanzoBody, HanzoData, HanzoMessage,
+    EncryptedHanzoBody, EncryptedHanzoData, HanzoBody, HanzoData, HanzoMessage, MessageBody,
+    MessageData,
 };
 use super::hanzo_message_error::HanzoMessageError;
 use super::hanzo_message_schemas::MessageSchemaType;
@@ -98,7 +99,9 @@ impl MessageBody {
         destination_pk: &EncryptionPublicKey,
     ) -> Result<MessageBody, HanzoMessageError> {
         match self {
-            MessageBody::Unencrypted(body) => MessageBody::encrypt_message_body(body, self_sk, destination_pk),
+            MessageBody::Unencrypted(body) => {
+                MessageBody::encrypt_message_body(body, self_sk, destination_pk)
+            }
             MessageBody::Encrypted(_) => Ok(self.clone()),
         }
     }
@@ -134,7 +137,9 @@ impl MessageBody {
         OsRng.fill_bytes(&mut nonce[..]);
         let nonce = GenericArray::from_slice(&nonce);
 
-        let ciphertext = cipher.encrypt(nonce, &body_bytes[..]).expect("encryption failure!");
+        let ciphertext = cipher
+            .encrypt(nonce, &body_bytes[..])
+            .expect("encryption failure!");
 
         let nonce_and_ciphertext = [nonce.as_slice(), &ciphertext].concat();
 
@@ -161,21 +166,26 @@ impl MessageBody {
                 let key = GenericArray::clone_from_slice(result.as_bytes());
                 let cipher = ChaCha20Poly1305::new(&key);
 
-                let decoded = hex::decode(content)
-                    .map_err(|e| HanzoMessageError::DecryptionError(format!("Failed to decode hex: {}", e)))?;
+                let decoded = hex::decode(content).map_err(|e| {
+                    HanzoMessageError::DecryptionError(format!("Failed to decode hex: {}", e))
+                })?;
                 let (nonce, ciphertext) = decoded.split_at(12);
                 let nonce = GenericArray::from_slice(nonce);
 
-                let plaintext_bytes = cipher
-                    .decrypt(nonce, ciphertext)
-                    .map_err(|_| HanzoMessageError::DecryptionError("Decryption failure!".to_string()))?;
+                let plaintext_bytes = cipher.decrypt(nonce, ciphertext).map_err(|_| {
+                    HanzoMessageError::DecryptionError("Decryption failure!".to_string())
+                })?;
 
-                let decrypted_body: HanzoBody = serde_json::from_slice(&plaintext_bytes)
-                    .map_err(|_| HanzoMessageError::DecryptionError("Failed to deserialize body".to_string()))?;
+                let decrypted_body: HanzoBody =
+                    serde_json::from_slice(&plaintext_bytes).map_err(|_| {
+                        HanzoMessageError::DecryptionError("Failed to deserialize body".to_string())
+                    })?;
 
                 Ok(decrypted_body)
             }
-            _ => Err(HanzoMessageError::DecryptionError("Unexpected variant".to_string())),
+            _ => Err(HanzoMessageError::DecryptionError(
+                "Unexpected variant".to_string(),
+            )),
         }
     }
 }
@@ -187,7 +197,9 @@ impl MessageData {
         destination_pk: &EncryptionPublicKey,
     ) -> Result<MessageData, HanzoMessageError> {
         match self {
-            MessageData::Unencrypted(data) => MessageData::encrypt_message_data(data, self_sk, destination_pk),
+            MessageData::Unencrypted(data) => {
+                MessageData::encrypt_message_data(data, self_sk, destination_pk)
+            }
             MessageData::Encrypted(_) => Ok(self.clone()),
         }
     }
@@ -232,11 +244,18 @@ impl MessageData {
 
         let content_len = (data.message_raw_content.len() as u64).to_le_bytes();
         let content_schema_len = (schema_str.len() as u64).to_le_bytes();
-        let length_prefixed_nonce_and_ciphertext =
-            [&content_len[..], &content_schema_len[..], &nonce_and_ciphertext[..]].concat();
+        let length_prefixed_nonce_and_ciphertext = [
+            &content_len[..],
+            &content_schema_len[..],
+            &nonce_and_ciphertext[..],
+        ]
+        .concat();
 
         Ok(MessageData::Encrypted(EncryptedHanzoData {
-            content: format!("encrypted:{}", hex::encode(length_prefixed_nonce_and_ciphertext)),
+            content: format!(
+                "encrypted:{}",
+                hex::encode(length_prefixed_nonce_and_ciphertext)
+            ),
         }))
     }
 
@@ -256,8 +275,9 @@ impl MessageData {
                 let key = GenericArray::clone_from_slice(result.as_bytes());
                 let cipher = ChaCha20Poly1305::new(&key);
 
-                let decoded = hex::decode(content)
-                    .map_err(|e| HanzoMessageError::DecryptionError(format!("Failed to decode hex: {}", e)))?;
+                let decoded = hex::decode(content).map_err(|e| {
+                    HanzoMessageError::DecryptionError(format!("Failed to decode hex: {}", e))
+                })?;
 
                 let (content_len_bytes, remainder) = decoded.split_at(8);
                 let (_, remainder) = remainder.split_at(8);
@@ -265,22 +285,28 @@ impl MessageData {
 
                 let content_len =
                     u64::from_le_bytes(content_len_bytes.try_into().map_err(|_| {
-                        HanzoMessageError::DecryptionError("Failed to parse content length".to_string())
+                        HanzoMessageError::DecryptionError(
+                            "Failed to parse content length".to_string(),
+                        )
                     })?);
 
                 let nonce = GenericArray::from_slice(nonce);
 
-                let plaintext_bytes = cipher
-                    .decrypt(nonce, ciphertext)
-                    .map_err(|_| HanzoMessageError::DecryptionError("Decryption failure!".to_string()))?;
+                let plaintext_bytes = cipher.decrypt(nonce, ciphertext).map_err(|_| {
+                    HanzoMessageError::DecryptionError("Decryption failure!".to_string())
+                })?;
 
                 let (content_bytes, schema_bytes) = plaintext_bytes.split_at(content_len as usize);
 
                 let content = String::from_utf8(content_bytes.to_vec()).map_err(|_| {
-                    HanzoMessageError::DecryptionError("Failed to decode decrypted content".to_string())
+                    HanzoMessageError::DecryptionError(
+                        "Failed to decode decrypted content".to_string(),
+                    )
                 })?;
                 let schema = String::from_utf8(schema_bytes.to_vec()).map_err(|_| {
-                    HanzoMessageError::DecryptionError("Failed to decode decrypted content schema".to_string())
+                    HanzoMessageError::DecryptionError(
+                        "Failed to decode decrypted content schema".to_string(),
+                    )
                 })?;
                 let schema = MessageSchemaType::from_str(schema.as_str()).ok_or(
                     HanzoMessageError::DecryptionError("Failed to parse schema".to_string()),
@@ -291,7 +317,9 @@ impl MessageData {
                     message_content_schema: schema,
                 })
             }
-            _ => Err(HanzoMessageError::DecryptionError("Unexpected variant".to_string())),
+            _ => Err(HanzoMessageError::DecryptionError(
+                "Unexpected variant".to_string(),
+            )),
         }
     }
 }
@@ -305,7 +333,9 @@ impl HanzoData {
         let message_data = MessageData::Unencrypted(self.clone());
         match message_data.encrypt(self_sk, destination_pk)? {
             MessageData::Encrypted(encrypted_data) => Ok(encrypted_data),
-            _ => Err(HanzoMessageError::EncryptionError("Encryption failed".to_string())),
+            _ => Err(HanzoMessageError::EncryptionError(
+                "Encryption failed".to_string(),
+            )),
         }
     }
 }

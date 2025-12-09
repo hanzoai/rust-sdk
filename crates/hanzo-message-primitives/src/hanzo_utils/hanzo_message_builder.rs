@@ -3,11 +3,10 @@ use ed25519_dalek::{SigningKey, VerifyingKey};
 use x25519_dalek::{PublicKey as EncryptionPublicKey, StaticSecret as EncryptionStaticKey};
 
 use crate::{
-    schemas::inbox_name::InboxName,
     hanzo_message::{
         hanzo_message::{
-            ExternalMetadata, InternalMetadata, MessageBody, MessageData, HanzoBody, HanzoData, HanzoMessage,
-            HanzoVersion,
+            ExternalMetadata, HanzoBody, HanzoData, HanzoMessage, HanzoVersion, InternalMetadata,
+            MessageBody, MessageData,
         },
         hanzo_message_schemas::MessageSchemaType,
     },
@@ -15,6 +14,7 @@ use crate::{
         encryption::{encryption_public_key_to_string, EncryptionMethod},
         signatures::signature_public_key_to_string,
     },
+    schemas::inbox_name::InboxName,
 };
 
 use super::{
@@ -178,7 +178,11 @@ impl HanzoMessageBuilder {
         self
     }
 
-    pub fn external_metadata(mut self, recipient: HanzoNameString, sender: HanzoNameString) -> Self {
+    pub fn external_metadata(
+        mut self,
+        recipient: HanzoNameString,
+        sender: HanzoNameString,
+    ) -> Self {
         let signature = "".to_string();
         let other = "".to_string();
         let intra_sender = "".to_string();
@@ -297,14 +301,18 @@ impl HanzoMessageBuilder {
         mut self,
         optional_second_public_key_receiver_node: EncryptionPublicKey,
     ) -> Self {
-        self.optional_second_public_key_receiver_node = Some(optional_second_public_key_receiver_node);
+        self.optional_second_public_key_receiver_node =
+            Some(optional_second_public_key_receiver_node);
         self
     }
 
     pub fn clone(&self) -> Self {
-        let my_encryption_secret_key_clone = clone_static_secret_key(&self.my_encryption_secret_key);
-        let my_signature_secret_key_clone = clone_signature_secret_key(&self.my_signature_secret_key);
-        let my_encryption_public_key_clone = x25519_dalek::PublicKey::from(&my_encryption_secret_key_clone);
+        let my_encryption_secret_key_clone =
+            clone_static_secret_key(&self.my_encryption_secret_key);
+        let my_signature_secret_key_clone =
+            clone_signature_secret_key(&self.my_signature_secret_key);
+        let my_encryption_public_key_clone =
+            x25519_dalek::PublicKey::from(&my_encryption_secret_key_clone);
         let my_signature_public_key_clone = my_signature_secret_key_clone.verifying_key();
         let receiver_public_key_clone = self.receiver_public_key;
 
@@ -362,7 +370,8 @@ impl HanzoMessageBuilder {
                     if let Ok(new_inbox_name) = new_inbox_name_result {
                         // Update the inbox name in the internal metadata if generation was successful
                         internal_metadata.inbox = match new_inbox_name {
-                            InboxName::RegularInbox { value, .. } | InboxName::JobInbox { value, .. } => value,
+                            InboxName::RegularInbox { value, .. }
+                            | InboxName::JobInbox { value, .. } => value,
                         };
                     }
                 }
@@ -420,8 +429,12 @@ impl HanzoMessageBuilder {
                     .as_ref()
                     .unwrap_or(&new_self.receiver_public_key);
 
-                MessageBody::encrypt_message_body(&signed_body, &new_self.my_encryption_secret_key, second_public_key)
-                    .expect("Failed to encrypt body")
+                MessageBody::encrypt_message_body(
+                    &signed_body,
+                    &new_self.my_encryption_secret_key,
+                    second_public_key,
+                )
+                .expect("Failed to encrypt body")
             } else {
                 // println!("No encryption");
                 // If encryption method is None, just return body
@@ -447,7 +460,8 @@ impl HanzoMessageBuilder {
 
 impl std::fmt::Debug for HanzoMessageBuilder {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let encryption_sk_string = encryption_secret_key_to_string(self.my_encryption_secret_key.clone());
+        let encryption_sk_string =
+            encryption_secret_key_to_string(self.my_encryption_secret_key.clone());
         let encryption_pk_string = encryption_public_key_to_string(self.my_encryption_public_key);
         let signature_sk_clone = clone_signature_secret_key(&self.my_signature_secret_key);
         let signature_sk_string = signature_secret_key_to_string(signature_sk_clone);

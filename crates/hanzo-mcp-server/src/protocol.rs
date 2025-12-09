@@ -92,7 +92,7 @@ pub enum Content {
     #[serde(rename = "text")]
     Text { text: String },
     #[serde(rename = "image")]
-    Image { 
+    Image {
         data: String,
         #[serde(rename = "mimeType")]
         mime_type: String,

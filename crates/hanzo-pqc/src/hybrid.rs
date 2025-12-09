@@ -1,11 +1,12 @@
 //! Hybrid KEM implementation combining ML-KEM with X25519
 //! Per NIST guidance for defense-in-depth
 
-use serde::{Deserialize, Serialize};
 use crate::{
-    kem::{Kem, KemAlgorithm, EncapsulationKey, DecapsulationKey},
-    kdf::{HkdfKdf, KdfAlgorithm, combine_shared_secrets}, Result,
+    kdf::{combine_shared_secrets, HkdfKdf, KdfAlgorithm},
+    kem::{DecapsulationKey, EncapsulationKey, Kem, KemAlgorithm},
+    Result,
 };
+use serde::{Deserialize, Serialize};
 
 /// Hybrid mode configuration
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -32,7 +33,7 @@ impl HybridMode {
             Self::MlKem1024X25519 => KemAlgorithm::MlKem1024,
         }
     }
-    
+
     pub fn kdf_algorithm(&self) -> KdfAlgorithm {
         match self {
             Self::MlKem512X25519 => KdfAlgorithm::HkdfSha256,
@@ -76,19 +77,25 @@ impl HybridKem {
     #[cfg(all(feature = "ml-kem", feature = "hybrid"))]
     pub fn new(mode: HybridMode) -> Self {
         use crate::kem::{MlKem, X25519Kem};
-        
+
         Self {
             pq_kem: Box::new(MlKem::new()),
             classical_kem: Box::new(X25519Kem),
             kdf: HkdfKdf::new(mode.kdf_algorithm()),
         }
     }
-    
+
     /// Generate hybrid key pair
-    pub async fn generate_keypair(&self, mode: HybridMode) -> Result<(HybridEncapsulationKey, HybridDecapsulationKey)> {
+    pub async fn generate_keypair(
+        &self,
+        mode: HybridMode,
+    ) -> Result<(HybridEncapsulationKey, HybridDecapsulationKey)> {
         let pq_keypair = self.pq_kem.generate_keypair(mode.pq_algorithm()).await?;
-        let classical_keypair = self.classical_kem.generate_keypair(KemAlgorithm::X25519).await?;
-        
+        let classical_keypair = self
+            .classical_kem
+            .generate_keypair(KemAlgorithm::X25519)
+            .await?;
+
         Ok((
             HybridEncapsulationKey {
                 mode,
@@ -102,7 +109,7 @@ impl HybridKem {
             },
         ))
     }
-    
+
     /// Hybrid encapsulation
     pub async fn encapsulate(
         &self,
@@ -112,7 +119,7 @@ impl HybridKem {
         // Encapsulate with both algorithms
         let pq_output = self.pq_kem.encapsulate(&key.pq_key).await?;
         let classical_output = self.classical_kem.encapsulate(&key.classical_key).await?;
-        
+
         // Combine shared secrets per SP 800-56C
         let combined = combine_shared_secrets(
             &self.kdf,
@@ -120,10 +127,10 @@ impl HybridKem {
             context,
             32,
         )?;
-        
+
         let mut shared_secret = [0u8; 32];
         shared_secret.copy_from_slice(&combined);
-        
+
         Ok((
             HybridCiphertext {
                 pq_ciphertext: pq_output.ciphertext,
@@ -132,7 +139,7 @@ impl HybridKem {
             shared_secret,
         ))
     }
-    
+
     /// Hybrid decapsulation
     pub async fn decapsulate(
         &self,
@@ -141,20 +148,22 @@ impl HybridKem {
         context: &[u8],
     ) -> Result<[u8; 32]> {
         // Decapsulate with both algorithms
-        let pq_secret = self.pq_kem.decapsulate(&key.pq_key, &ciphertext.pq_ciphertext).await?;
-        let classical_secret = self.classical_kem.decapsulate(&key.classical_key, &ciphertext.classical_ciphertext).await?;
-        
+        let pq_secret = self
+            .pq_kem
+            .decapsulate(&key.pq_key, &ciphertext.pq_ciphertext)
+            .await?;
+        let classical_secret = self
+            .classical_kem
+            .decapsulate(&key.classical_key, &ciphertext.classical_ciphertext)
+            .await?;
+
         // Combine shared secrets per SP 800-56C
-        let combined = combine_shared_secrets(
-            &self.kdf,
-            &[&pq_secret, &classical_secret],
-            context,
-            32,
-        )?;
-        
+        let combined =
+            combine_shared_secrets(&self.kdf, &[&pq_secret, &classical_secret], context, 32)?;
+
         let mut shared_secret = [0u8; 32];
         shared_secret.copy_from_slice(&combined);
-        
+
         Ok(shared_secret)
     }
 }
@@ -174,12 +183,15 @@ pub struct HybridHandshakeMessage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[tokio::test]
     #[cfg(all(feature = "ml-kem", feature = "hybrid"))]
     async fn test_hybrid_kem() {
         // Skip if CI or if OQS library not available
-        if std::env::var("CI").is_ok() { println!("Skipping test in CI: test_hybrid_kem"); return; }
+        if std::env::var("CI").is_ok() {
+            println!("Skipping test in CI: test_hybrid_kem");
+            return;
+        }
         let kem = HybridKem::new(HybridMode::MlKem768X25519);
         let (encap_key, decap_key) = match kem.generate_keypair(HybridMode::MlKem768X25519).await {
             Ok(k) => k,
@@ -191,7 +203,10 @@ mod tests {
 
         let context = b"hanzo-hybrid-test-v1";
         let (ciphertext, shared1) = kem.encapsulate(&encap_key, context).await.unwrap();
-        let shared2 = kem.decapsulate(&decap_key, &ciphertext, context).await.unwrap();
+        let shared2 = kem
+            .decapsulate(&decap_key, &ciphertext, context)
+            .await
+            .unwrap();
 
         assert_eq!(shared1, shared2);
         assert_eq!(ciphertext.pq_ciphertext.len(), 1088); // ML-KEM-768 ciphertext

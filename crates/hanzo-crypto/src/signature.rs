@@ -1,10 +1,10 @@
 //! Digital signature implementation
 //! FIPS 204 (ML-DSA/Dilithium) and FIPS 205 (SLH-DSA/SPHINCS+)
 
+use crate::{PqcError, Result};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use zeroize::{Zeroize, ZeroizeOnDrop};
-use crate::{PqcError, Result};
 
 /// Signature algorithms supported
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -29,16 +29,16 @@ impl SignatureAlgorithm {
     /// Get the public key size in bytes
     pub fn public_key_size(&self) -> usize {
         match self {
-            Self::MlDsa44 => 1312,   // Per FIPS 204
-            Self::MlDsa65 => 1952,   // Per FIPS 204
-            Self::MlDsa87 => 2592,   // Per FIPS 204
-            Self::SlhDsa128s => 32,  // Per FIPS 205
-            Self::SlhDsa192s => 48,  // Per FIPS 205
-            Self::SlhDsa256s => 64,  // Per FIPS 205
+            Self::MlDsa44 => 1312,  // Per FIPS 204
+            Self::MlDsa65 => 1952,  // Per FIPS 204
+            Self::MlDsa87 => 2592,  // Per FIPS 204
+            Self::SlhDsa128s => 32, // Per FIPS 205
+            Self::SlhDsa192s => 48, // Per FIPS 205
+            Self::SlhDsa256s => 64, // Per FIPS 205
             Self::Ed25519 => 32,
         }
     }
-    
+
     /// Get the secret key size in bytes
     pub fn secret_key_size(&self) -> usize {
         match self {
@@ -51,20 +51,20 @@ impl SignatureAlgorithm {
             Self::Ed25519 => 32,
         }
     }
-    
+
     /// Get the signature size in bytes
     pub fn signature_size(&self) -> usize {
         match self {
-            Self::MlDsa44 => 2420,   // Per FIPS 204
-            Self::MlDsa65 => 3309,   // Per FIPS 204
-            Self::MlDsa87 => 4627,   // Per FIPS 204
+            Self::MlDsa44 => 2420,     // Per FIPS 204
+            Self::MlDsa65 => 3309,     // Per FIPS 204
+            Self::MlDsa87 => 4627,     // Per FIPS 204
             Self::SlhDsa128s => 7856,  // Per FIPS 205 (small variant)
             Self::SlhDsa192s => 16224, // Per FIPS 205 (small variant)
             Self::SlhDsa256s => 29792, // Per FIPS 205 (small variant)
             Self::Ed25519 => 64,
         }
     }
-    
+
     /// Get the saorsa ML-DSA variant
     #[cfg(feature = "ml-dsa")]
     pub(crate) fn to_saorsa_variant(&self) -> Option<saorsa_pqc::MlDsaVariant> {
@@ -114,11 +114,12 @@ pub struct DigitalSignature {
 #[async_trait]
 pub trait Signature: Send + Sync {
     /// Generate a new key pair
-    async fn generate_keypair(&self, alg: SignatureAlgorithm) -> Result<(VerifyingKey, SigningKey)>;
-    
+    async fn generate_keypair(&self, alg: SignatureAlgorithm)
+        -> Result<(VerifyingKey, SigningKey)>;
+
     /// Sign a message
     async fn sign(&self, key: &SigningKey, message: &[u8]) -> Result<DigitalSignature>;
-    
+
     /// Verify a signature
     async fn verify(
         &self,
@@ -146,17 +147,27 @@ impl MlDsa {
 #[cfg(feature = "ml-dsa")]
 #[async_trait]
 impl Signature for MlDsa {
-    async fn generate_keypair(&self, alg: SignatureAlgorithm) -> Result<(VerifyingKey, SigningKey)> {
+    async fn generate_keypair(
+        &self,
+        alg: SignatureAlgorithm,
+    ) -> Result<(VerifyingKey, SigningKey)> {
         use saorsa_pqc::{MlDsa65, MlDsaOperations};
 
-        if !matches!(alg, SignatureAlgorithm::MlDsa44 | SignatureAlgorithm::MlDsa65 | SignatureAlgorithm::MlDsa87) {
-            return Err(PqcError::UnsupportedAlgorithm(format!("{:?} not supported", alg)));
+        if !matches!(
+            alg,
+            SignatureAlgorithm::MlDsa44 | SignatureAlgorithm::MlDsa65 | SignatureAlgorithm::MlDsa87
+        ) {
+            return Err(PqcError::UnsupportedAlgorithm(format!(
+                "{:?} not supported",
+                alg
+            )));
         }
 
         // Use MlDsa65 as the default implementation
         // TODO: Support other variants based on alg parameter
         let ml_dsa = MlDsa65::new();
-        let (pub_key, sec_key) = ml_dsa.generate_keypair()
+        let (pub_key, sec_key) = ml_dsa
+            .generate_keypair()
             .map_err(|e| PqcError::SignatureError(format!("Keypair generation failed: {:?}", e)))?;
 
         Ok((
@@ -170,7 +181,7 @@ impl Signature for MlDsa {
             },
         ))
     }
-    
+
     async fn sign(&self, key: &SigningKey, message: &[u8]) -> Result<DigitalSignature> {
         use saorsa_pqc::{MlDsa65, MlDsaOperations, MlDsaSecretKey};
 
@@ -178,7 +189,8 @@ impl Signature for MlDsa {
         let sec_key = MlDsaSecretKey::from_bytes(&key.key_bytes)
             .map_err(|e| PqcError::SignatureError(format!("Invalid signing key: {:?}", e)))?;
 
-        let signature = ml_dsa.sign(&sec_key, message)
+        let signature = ml_dsa
+            .sign(&sec_key, message)
             .map_err(|e| PqcError::SignatureError(format!("Signing failed: {:?}", e)))?;
 
         Ok(DigitalSignature {
@@ -186,7 +198,7 @@ impl Signature for MlDsa {
             signature_bytes: signature.as_bytes().to_vec(),
         })
     }
-    
+
     async fn verify(
         &self,
         key: &VerifyingKey,
@@ -215,21 +227,26 @@ pub struct Ed25519Sig;
 
 #[async_trait]
 impl Signature for Ed25519Sig {
-    async fn generate_keypair(&self, alg: SignatureAlgorithm) -> Result<(VerifyingKey, SigningKey)> {
+    async fn generate_keypair(
+        &self,
+        alg: SignatureAlgorithm,
+    ) -> Result<(VerifyingKey, SigningKey)> {
         if !matches!(alg, SignatureAlgorithm::Ed25519) {
-            return Err(PqcError::UnsupportedAlgorithm("Use MlDsa for ML-DSA".into()));
+            return Err(PqcError::UnsupportedAlgorithm(
+                "Use MlDsa for ML-DSA".into(),
+            ));
         }
-        
+
         use ed25519_dalek::{SigningKey as Ed25519SigningKey, VerifyingKey as Ed25519VerifyingKey};
         use rand::{rngs::OsRng, Rng};
-        
+
         let mut csprng = OsRng;
         let mut secret_bytes = [0u8; 32];
         csprng.fill(&mut secret_bytes);
-        
+
         let signing_key = Ed25519SigningKey::from_bytes(&secret_bytes);
         let verifying_key = signing_key.verifying_key();
-        
+
         Ok((
             VerifyingKey {
                 algorithm: alg,
@@ -241,39 +258,41 @@ impl Signature for Ed25519Sig {
             },
         ))
     }
-    
+
     async fn sign(&self, key: &SigningKey, message: &[u8]) -> Result<DigitalSignature> {
         use ed25519_dalek::{Signer, SigningKey as Ed25519SigningKey};
-        
+
         let mut sk_bytes = [0u8; 32];
         sk_bytes.copy_from_slice(&key.key_bytes);
         let signing_key = Ed25519SigningKey::from_bytes(&sk_bytes);
-        
+
         let signature = signing_key.sign(message);
-        
+
         Ok(DigitalSignature {
             algorithm: key.algorithm,
             signature_bytes: signature.to_bytes().to_vec(),
         })
     }
-    
+
     async fn verify(
         &self,
         key: &VerifyingKey,
         message: &[u8],
         signature: &DigitalSignature,
     ) -> Result<bool> {
-        use ed25519_dalek::{Verifier, VerifyingKey as Ed25519VerifyingKey, Signature as Ed25519Signature};
-        
+        use ed25519_dalek::{
+            Signature as Ed25519Signature, Verifier, VerifyingKey as Ed25519VerifyingKey,
+        };
+
         let mut vk_bytes = [0u8; 32];
         vk_bytes.copy_from_slice(&key.key_bytes);
         let verifying_key = Ed25519VerifyingKey::from_bytes(&vk_bytes)
             .map_err(|e| PqcError::SignatureError(format!("Invalid verifying key: {}", e)))?;
-        
+
         let mut sig_bytes = [0u8; 64];
         sig_bytes.copy_from_slice(&signature.signature_bytes);
         let sig = Ed25519Signature::from_bytes(&sig_bytes);
-        
+
         Ok(verifying_key.verify(message, &sig).is_ok())
     }
 }
@@ -281,34 +300,40 @@ impl Signature for Ed25519Sig {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[tokio::test]
     #[cfg(feature = "ml-dsa")]
     async fn test_ml_dsa_65() {
         let signer = MlDsa::new();
-        let (vk, sk) = signer.generate_keypair(SignatureAlgorithm::MlDsa65).await.unwrap();
-        
+        let (vk, sk) = signer
+            .generate_keypair(SignatureAlgorithm::MlDsa65)
+            .await
+            .unwrap();
+
         let message = b"Test message for ML-DSA-65";
         let signature = signer.sign(&sk, message).await.unwrap();
-        
+
         assert!(signer.verify(&vk, message, &signature).await.unwrap());
         assert_eq!(signature.signature_bytes.len(), 3309); // ML-DSA-65 signature size
-        
+
         // TODO: Fix this test - saorsa-pqc seems to have an issue with signature verification
         // The library appears to always return true for verify, which is incorrect
         // Skipping this check for now
         // let wrong_message = b"Wrong message";
         // assert!(!signer.verify(&vk, wrong_message, &signature).await.unwrap());
     }
-    
+
     #[tokio::test]
     async fn test_ed25519() {
         let signer = Ed25519Sig;
-        let (vk, sk) = signer.generate_keypair(SignatureAlgorithm::Ed25519).await.unwrap();
-        
+        let (vk, sk) = signer
+            .generate_keypair(SignatureAlgorithm::Ed25519)
+            .await
+            .unwrap();
+
         let message = b"Test message for Ed25519";
         let signature = signer.sign(&sk, message).await.unwrap();
-        
+
         assert!(signer.verify(&vk, message, &signature).await.unwrap());
     }
 }

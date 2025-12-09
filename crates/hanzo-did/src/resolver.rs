@@ -1,18 +1,18 @@
 //! DID Resolution
-//! 
+//!
 //! Based on: https://www.w3.org/TR/did-core/#resolution
 
 use async_trait::async_trait;
 use std::collections::HashMap;
 
-use crate::{DID, DIDDocument, DIDError};
+use crate::{DIDDocument, DIDError, DID};
 
 /// DID Resolver trait
 #[async_trait]
 pub trait DIDResolver {
     /// Resolve a DID to its document
     async fn resolve(&self, did: &DID) -> Result<DIDDocument, DIDError>;
-    
+
     /// Resolve with options
     async fn resolve_with_options(
         &self,
@@ -26,13 +26,13 @@ pub trait DIDResolver {
 pub struct ResolveOptions {
     /// Accept header for content negotiation
     pub accept: Option<String>,
-    
+
     /// Version of the DID document to retrieve
     pub version_id: Option<String>,
-    
+
     /// Timestamp to retrieve document at
     pub version_time: Option<String>,
-    
+
     /// Whether to dereference fragments
     pub no_cache: bool,
 }
@@ -42,10 +42,10 @@ pub struct ResolveOptions {
 pub struct ResolveResult {
     /// The resolved DID document
     pub document: DIDDocument,
-    
+
     /// Resolution metadata
     pub metadata: ResolutionMetadata,
-    
+
     /// Document metadata
     pub document_metadata: DocumentMetadata,
 }
@@ -55,10 +55,10 @@ pub struct ResolveResult {
 pub struct ResolutionMetadata {
     /// Content type of the document
     pub content_type: Option<String>,
-    
+
     /// Error message if resolution failed
     pub error: Option<String>,
-    
+
     /// Additional properties
     pub properties: HashMap<String, serde_json::Value>,
 }
@@ -68,22 +68,22 @@ pub struct ResolutionMetadata {
 pub struct DocumentMetadata {
     /// When the document was created
     pub created: Option<String>,
-    
+
     /// When the document was last updated
     pub updated: Option<String>,
-    
+
     /// Whether the DID has been deactivated
     pub deactivated: Option<bool>,
-    
+
     /// Version ID of this document
     pub version_id: Option<String>,
-    
+
     /// Next version ID
     pub next_version_id: Option<String>,
-    
+
     /// Canonical ID
     pub canonical_id: Option<String>,
-    
+
     /// Equivalent IDs
     pub equivalent_id: Option<Vec<String>>,
 }
@@ -106,7 +106,7 @@ impl UniversalResolver {
             resolvers: HashMap::new(),
         }
     }
-    
+
     /// Register a resolver for a DID method
     pub fn register_resolver(
         &mut self,
@@ -120,26 +120,22 @@ impl UniversalResolver {
 #[async_trait]
 impl DIDResolver for UniversalResolver {
     async fn resolve(&self, did: &DID) -> Result<DIDDocument, DIDError> {
-        let resolver = self.resolvers
-            .get(&did.method)
-            .ok_or_else(|| DIDError::ResolutionFailed(
-                format!("No resolver for method: {}", did.method)
-            ))?;
-        
+        let resolver = self.resolvers.get(&did.method).ok_or_else(|| {
+            DIDError::ResolutionFailed(format!("No resolver for method: {}", did.method))
+        })?;
+
         resolver.resolve(did).await
     }
-    
+
     async fn resolve_with_options(
         &self,
         did: &DID,
         options: ResolveOptions,
     ) -> Result<ResolveResult, DIDError> {
-        let resolver = self.resolvers
-            .get(&did.method)
-            .ok_or_else(|| DIDError::ResolutionFailed(
-                format!("No resolver for method: {}", did.method)
-            ))?;
-        
+        let resolver = self.resolvers.get(&did.method).ok_or_else(|| {
+            DIDError::ResolutionFailed(format!("No resolver for method: {}", did.method))
+        })?;
+
         resolver.resolve_with_options(did, options).await
     }
 }

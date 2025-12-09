@@ -78,7 +78,8 @@ impl SerializedLLMProvider {
             id: "mock_agent".to_string(),
             name: Some("Mock Agent".to_string()),
             description: Some("A mock agent for testing.".to_string()),
-            full_identity_name: HanzoName::new("@@test.hanzo/main/agent/mock_agent".to_string()).unwrap(),
+            full_identity_name: HanzoName::new("@@test.hanzo/main/agent/mock_agent".to_string())
+                .unwrap(),
             external_url: Some("https://api.example.com".to_string()),
             api_key: Some("mockapikey".to_string()),
             model: LLMProviderInterface::OpenAI(OpenAI {
@@ -92,7 +93,10 @@ impl SerializedLLMProvider {
             id: "mock_agent_reasoning".to_string(),
             name: Some("Mock Agent Reasoning".to_string()),
             description: Some("A mock agent with reasoning for testing.".to_string()),
-            full_identity_name: HanzoName::new("@@test.hanzo/main/agent/mock_agent_reasoning".to_string()).unwrap(),
+            full_identity_name: HanzoName::new(
+                "@@test.hanzo/main/agent/mock_agent_reasoning".to_string(),
+            )
+            .unwrap(),
             external_url: Some("https://api.example.com".to_string()),
             api_key: Some("mockapikey".to_string()),
             model: LLMProviderInterface::OpenAI(OpenAI {
@@ -268,7 +272,9 @@ impl FromStr for LLMProviderInterface {
             Ok(LLMProviderInterface::OpenAI(OpenAI { model_type }))
         } else if s.starts_with("openai-legacy:") {
             let model_type = s.strip_prefix("openai-legacy:").unwrap_or("").to_string();
-            Ok(LLMProviderInterface::OpenAILegacy(OpenAILegacy { model_type }))
+            Ok(LLMProviderInterface::OpenAILegacy(OpenAILegacy {
+                model_type,
+            }))
         } else if s.starts_with("togetherai:") {
             let model_type = s.strip_prefix("togetherai:").unwrap_or("").to_string();
             Ok(LLMProviderInterface::TogetherAI(TogetherAI { model_type }))
@@ -277,7 +283,9 @@ impl FromStr for LLMProviderInterface {
             Ok(LLMProviderInterface::Ollama(Ollama { model_type }))
         } else if s.starts_with("hanzo-backend:") {
             let model_type = s.strip_prefix("hanzo-backend:").unwrap_or("").to_string();
-            Ok(LLMProviderInterface::HanzoBackend(HanzoBackend { model_type }))
+            Ok(LLMProviderInterface::HanzoBackend(HanzoBackend {
+                model_type,
+            }))
         } else if s.starts_with("groq:") {
             let model_type = s.strip_prefix("groq:").unwrap_or("").to_string();
             Ok(LLMProviderInterface::Groq(Groq { model_type }))

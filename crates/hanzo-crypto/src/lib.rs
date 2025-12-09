@@ -1,25 +1,25 @@
 //! NIST Post-Quantum Cryptography implementation for Hanzo Node
-//! 
+//!
 //! Implements FIPS 203 (ML-KEM), FIPS 204 (ML-DSA), and FIPS 205 (SLH-DSA)
 //! with support for hybrid modes and privacy tiers.
 
-pub mod kem;
-pub mod signature;
-pub mod kdf;
-pub mod hybrid;
-pub mod privacy_tiers;
-pub mod wire_protocol;
 pub mod attestation;
 pub mod config;
 pub mod errors;
+pub mod hybrid;
+pub mod kdf;
+pub mod kem;
+pub mod privacy_tiers;
+pub mod signature;
+pub mod wire_protocol;
 
-pub use kem::{Kem, KemAlgorithm, KemKeyPair, EncapsulationKey, DecapsulationKey};
-pub use signature::{Signature, SignatureAlgorithm, SigningKey, VerifyingKey};
-pub use kdf::{Kdf, KdfAlgorithm};
-pub use hybrid::{HybridKem, HybridMode};
-pub use privacy_tiers::{PrivacyTier, CapabilityMatrix, RuntimeRequirements};
 pub use config::PqcConfig;
 pub use errors::{PqcError, Result};
+pub use hybrid::{HybridKem, HybridMode};
+pub use kdf::{Kdf, KdfAlgorithm};
+pub use kem::{DecapsulationKey, EncapsulationKey, Kem, KemAlgorithm, KemKeyPair};
+pub use privacy_tiers::{CapabilityMatrix, PrivacyTier, RuntimeRequirements};
+pub use signature::{Signature, SignatureAlgorithm, SigningKey, VerifyingKey};
 
 // Re-export saorsa-pqc for post-quantum crypto
 pub use saorsa_pqc;
@@ -31,7 +31,7 @@ pub fn init() -> Result<()> {
     {
         verify_fips_rng()?;
     }
-    
+
     Ok(())
 }
 

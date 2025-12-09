@@ -23,7 +23,9 @@ impl EncryptionMethod {
 
     pub fn from_str(s: &str) -> EncryptionMethod {
         match s {
-            "DiffieHellmanChaChaPoly1305" | "default" => EncryptionMethod::DiffieHellmanChaChaPoly1305,
+            "DiffieHellmanChaChaPoly1305" | "default" => {
+                EncryptionMethod::DiffieHellmanChaChaPoly1305
+            }
             _ => EncryptionMethod::None,
         }
     }

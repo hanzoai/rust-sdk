@@ -12,7 +12,7 @@ use std::sync::Arc;
 pub enum Instructions {
     /// Static instructions
     Static(String),
-    
+
     /// Dynamic instructions generated at runtime
     /// TODO: Add support for dynamic instructions via function
     Dynamic(String),
@@ -47,22 +47,22 @@ impl From<&str> for Instructions {
 pub struct Agent {
     /// The name of the agent
     pub name: String,
-    
+
     /// Instructions (system prompt) for the agent
     pub instructions: Option<Instructions>,
-    
+
     /// The model to use (e.g., "gpt-4", "claude-3-5-sonnet")
     pub model: String,
-    
+
     /// Tools available to the agent
     pub tools: Vec<Arc<dyn Tool>>,
-    
+
     /// Handoff agents (sub-agents the agent can delegate to)
     pub handoffs: Vec<Agent>,
-    
+
     /// Model settings (temperature, max_tokens, etc.)
     pub model_settings: ModelSettings,
-    
+
     /// Description for when this agent is used as a handoff
     pub handoff_description: Option<String>,
 }
@@ -239,15 +239,9 @@ mod tests {
             .instructions("Original instructions")
             .build();
 
-        let modified = agent
-            .clone_with()
-            .instructions("New instructions")
-            .build();
+        let modified = agent.clone_with().instructions("New instructions").build();
 
         assert_eq!(modified.name, "test");
-        assert_eq!(
-            modified.system_prompt(),
-            Some("New instructions")
-        );
+        assert_eq!(modified.system_prompt(), Some("New instructions"));
     }
 }

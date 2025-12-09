@@ -1,6 +1,6 @@
-use std::path::{Path, PathBuf};
-use std::fs;
 use serde::{Deserialize, Serialize};
+use std::fs;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
@@ -40,9 +40,9 @@ pub struct HanzoConfig {
     pub web_port: u16,
     pub api_host: String,
     pub api_port: u16,
-    pub ws_enabled: bool,      // WebSocket support
-    pub ws_port: Option<u16>,  // WebSocket port (if different from api_port)
-    pub p2p_port: u16,         // P2P consensus port
+    pub ws_enabled: bool,     // WebSocket support
+    pub ws_port: Option<u16>, // WebSocket port (if different from api_port)
+    pub p2p_port: u16,        // P2P consensus port
     pub public_url: Option<String>,
     pub enable_cors: bool,
     pub allowed_origins: Vec<String>,
@@ -93,12 +93,12 @@ impl Default for HanzoConfig {
             // Web exposure (for public access via hanzod)
             web_enabled: true,
             web_host: "0.0.0.0".to_string(),
-            web_port: 3692,  // Web interface port (3690 + 2)
+            web_port: 3692, // Web interface port (3690 + 2)
             api_host: "0.0.0.0".to_string(),
-            api_port: 3690,  // Main hanzod port (API + WebSocket)
+            api_port: 3690, // Main hanzod port (API + WebSocket)
             ws_enabled: true,
             ws_port: None,  // Use same port as API (3690) for WebSocket
-            p2p_port: 3691,  // P2P consensus port (3690 + 1)
+            p2p_port: 3691, // P2P consensus port (3690 + 1)
             public_url: None,
             enable_cors: true,
             allowed_origins: vec!["*".to_string()],
@@ -237,9 +237,9 @@ impl HanzoConfig {
 
     /// Get public URL for web exposure
     pub fn get_public_url(&self) -> String {
-        self.public_url.clone().unwrap_or_else(|| {
-            format!("http://{}:{}", self.web_host, self.web_port)
-        })
+        self.public_url
+            .clone()
+            .unwrap_or_else(|| format!("http://{}:{}", self.web_host, self.web_port))
     }
 
     /// Get API URL

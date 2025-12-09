@@ -8,16 +8,16 @@ use serde::{Deserialize, Serialize};
 pub struct RunResult {
     /// The original input
     pub input: Vec<InputItem>,
-    
+
     /// New items generated during the run
     pub new_items: Vec<RunItem>,
-    
+
     /// Raw model responses
     pub raw_responses: Vec<ModelResponse>,
-    
+
     /// The final output
     pub final_output: String,
-    
+
     /// Total usage statistics
     pub usage: Usage,
 }

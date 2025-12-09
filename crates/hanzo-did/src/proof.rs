@@ -57,10 +57,7 @@ pub enum ProofPurpose {
 
 impl Proof {
     /// Create a new Ed25519 signature proof
-    pub fn new_ed25519_signature(
-        verification_method: String,
-        signature: Vec<u8>,
-    ) -> Self {
+    pub fn new_ed25519_signature(verification_method: String, signature: Vec<u8>) -> Self {
         Self {
             type_: "Ed25519Signature2020".to_string(),
             created: Utc::now(),

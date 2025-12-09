@@ -92,7 +92,11 @@ mod tests {
 
         for invalid_case in invalid_cases {
             let result = serde_json::from_str::<CodeLanguage>(invalid_case);
-            assert!(result.is_err(), "Should fail to deserialize: {}", invalid_case);
+            assert!(
+                result.is_err(),
+                "Should fail to deserialize: {}",
+                invalid_case
+            );
         }
     }
 }

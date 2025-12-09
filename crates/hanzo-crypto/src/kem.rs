@@ -1,10 +1,10 @@
 //! Key Encapsulation Mechanism (KEM) implementation
 //! FIPS 203 (ML-KEM/Kyber) support with hybrid X25519 option
 
+use crate::{PqcError, Result};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use zeroize::{Zeroize, ZeroizeOnDrop};
-use crate::{PqcError, Result};
 
 /// KEM algorithms supported
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -29,7 +29,7 @@ impl KemAlgorithm {
             Self::X25519 => 32,
         }
     }
-    
+
     /// Get the ciphertext size in bytes
     pub fn ciphertext_size(&self) -> usize {
         match self {
@@ -39,12 +39,12 @@ impl KemAlgorithm {
             Self::X25519 => 32,
         }
     }
-    
+
     /// Get the shared secret size (always 32 bytes for ML-KEM)
     pub fn shared_secret_size(&self) -> usize {
         32 // All ML-KEM variants produce 32-byte shared secrets
     }
-    
+
     /// Get the saorsa_pqc ML-KEM variant
     #[cfg(feature = "ml-kem")]
     pub(crate) fn to_saorsa_variant(&self) -> saorsa_pqc::MlKemVariant {
@@ -100,10 +100,10 @@ pub struct KemOutput {
 pub trait Kem: Send + Sync {
     /// Generate a new key pair
     async fn generate_keypair(&self, alg: KemAlgorithm) -> Result<KemKeyPair>;
-    
+
     /// Encapsulate (generate ciphertext and shared secret)
     async fn encapsulate(&self, encap_key: &EncapsulationKey) -> Result<KemOutput>;
-    
+
     /// Decapsulate (recover shared secret from ciphertext)
     async fn decapsulate(
         &self,
@@ -135,13 +135,16 @@ impl Kem for MlKem {
         use saorsa_pqc::{MlKem768, MlKemOperations};
 
         if matches!(alg, KemAlgorithm::X25519) {
-            return Err(PqcError::UnsupportedAlgorithm("Use X25519Kem for X25519".into()));
+            return Err(PqcError::UnsupportedAlgorithm(
+                "Use X25519Kem for X25519".into(),
+            ));
         }
 
         // Use MlKem768 as the default implementation
         // TODO: Support other variants based on alg parameter
         let ml_kem = MlKem768::new();
-        let (pub_key, sec_key) = ml_kem.generate_keypair()
+        let (pub_key, sec_key) = ml_kem
+            .generate_keypair()
             .map_err(|e| PqcError::KemError(format!("Keypair generation failed: {:?}", e)))?;
 
         Ok(KemKeyPair {
@@ -163,7 +166,8 @@ impl Kem for MlKem {
         let pub_key = MlKemPublicKey::from_bytes(&encap_key.key_bytes)
             .map_err(|e| PqcError::KemError(format!("Invalid public key: {:?}", e)))?;
 
-        let (ciphertext, shared_secret) = ml_kem.encapsulate(&pub_key)
+        let (ciphertext, shared_secret) = ml_kem
+            .encapsulate(&pub_key)
             .map_err(|e| PqcError::KemError(format!("Encapsulation failed: {:?}", e)))?;
 
         let mut secret_array = [0u8; 32];
@@ -174,13 +178,13 @@ impl Kem for MlKem {
             shared_secret: secret_array,
         })
     }
-    
+
     async fn decapsulate(
         &self,
         decap_key: &DecapsulationKey,
         ciphertext: &[u8],
     ) -> Result<[u8; 32]> {
-        use saorsa_pqc::{MlKem768, MlKemOperations, MlKemSecretKey, MlKemCiphertext};
+        use saorsa_pqc::{MlKem768, MlKemCiphertext, MlKemOperations, MlKemSecretKey};
 
         let ml_kem = MlKem768::new();
         let sec_key = MlKemSecretKey::from_bytes(&decap_key.key_bytes)
@@ -189,7 +193,8 @@ impl Kem for MlKem {
         let ciphertext = MlKemCiphertext::from_bytes(ciphertext)
             .map_err(|e| PqcError::KemError(format!("Invalid ciphertext: {:?}", e)))?;
 
-        let shared_secret = ml_kem.decapsulate(&sec_key, &ciphertext)
+        let shared_secret = ml_kem
+            .decapsulate(&sec_key, &ciphertext)
             .map_err(|e| PqcError::KemError(format!("Decapsulation failed: {:?}", e)))?;
 
         let mut secret_array = [0u8; 32];
@@ -207,11 +212,13 @@ pub struct X25519Kem;
 impl Kem for X25519Kem {
     async fn generate_keypair(&self, alg: KemAlgorithm) -> Result<KemKeyPair> {
         if !matches!(alg, KemAlgorithm::X25519) {
-            return Err(PqcError::UnsupportedAlgorithm("Use MlKem for ML-KEM".into()));
+            return Err(PqcError::UnsupportedAlgorithm(
+                "Use MlKem for ML-KEM".into(),
+            ));
         }
-        
-        use x25519_dalek::{StaticSecret, PublicKey};
+
         use rand::rngs::OsRng;
+        use x25519_dalek::{PublicKey, StaticSecret};
 
         let secret = StaticSecret::random_from_rng(&mut OsRng);
         let public = PublicKey::from(&secret);
@@ -227,10 +234,10 @@ impl Kem for X25519Kem {
             },
         })
     }
-    
+
     async fn encapsulate(&self, encap_key: &EncapsulationKey) -> Result<KemOutput> {
-        use x25519_dalek::{StaticSecret, PublicKey};
         use rand::rngs::OsRng;
+        use x25519_dalek::{PublicKey, StaticSecret};
 
         // Generate ephemeral key pair
         let ephemeral_secret = StaticSecret::random_from_rng(&mut OsRng);
@@ -249,13 +256,13 @@ impl Kem for X25519Kem {
             shared_secret: *shared.as_bytes(),
         })
     }
-    
+
     async fn decapsulate(
         &self,
         decap_key: &DecapsulationKey,
         ciphertext: &[u8],
     ) -> Result<[u8; 32]> {
-        use x25519_dalek::{StaticSecret, PublicKey};
+        use x25519_dalek::{PublicKey, StaticSecret};
 
         // Parse private key
         let mut sk_bytes = [0u8; 32];
@@ -276,29 +283,35 @@ impl Kem for X25519Kem {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[tokio::test]
     #[cfg(feature = "ml-kem")]
     async fn test_ml_kem_768() {
         let kem = MlKem::new();
         let keypair = kem.generate_keypair(KemAlgorithm::MlKem768).await.unwrap();
-        
+
         let output = kem.encapsulate(&keypair.encap_key).await.unwrap();
-        let recovered = kem.decapsulate(&keypair.decap_key, &output.ciphertext).await.unwrap();
-        
+        let recovered = kem
+            .decapsulate(&keypair.decap_key, &output.ciphertext)
+            .await
+            .unwrap();
+
         assert_eq!(output.shared_secret, recovered);
         assert_eq!(output.ciphertext.len(), 1088); // ML-KEM-768 ciphertext size
     }
-    
+
     #[tokio::test]
     #[cfg(feature = "hybrid")]
     async fn test_x25519() {
         let kem = X25519Kem;
         let keypair = kem.generate_keypair(KemAlgorithm::X25519).await.unwrap();
-        
+
         let output = kem.encapsulate(&keypair.encap_key).await.unwrap();
-        let recovered = kem.decapsulate(&keypair.decap_key, &output.ciphertext).await.unwrap();
-        
+        let recovered = kem
+            .decapsulate(&keypair.decap_key, &output.ciphertext)
+            .await
+            .unwrap();
+
         assert_eq!(output.shared_secret, recovered);
     }
 }

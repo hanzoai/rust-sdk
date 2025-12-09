@@ -1,7 +1,7 @@
 use std::fmt;
 
 use super::hanzo_name::{HanzoName, HanzoNameError};
-use crate::hanzo_message::hanzo_message::{MessageBody, HanzoMessage};
+use crate::hanzo_message::hanzo_message::{HanzoMessage, MessageBody};
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 
@@ -99,7 +99,9 @@ impl InboxName {
                 let inbox_name = body.internal_metadata.inbox.clone();
                 InboxName::new(inbox_name)
             }
-            _ => Err(InboxNameError::InvalidFormat("Expected Unencrypted MessageBody".into())),
+            _ => Err(InboxNameError::InvalidFormat(
+                "Expected Unencrypted MessageBody".into(),
+            )),
         }
     }
 
@@ -126,7 +128,10 @@ impl InboxName {
         }
     }
 
-    pub fn has_sender_creation_access(&self, message: HanzoMessage) -> Result<bool, InboxNameError> {
+    pub fn has_sender_creation_access(
+        &self,
+        message: HanzoMessage,
+    ) -> Result<bool, InboxNameError> {
         match HanzoName::from_hanzo_message_using_sender_subidentity(&message) {
             Ok(hanzo_name) => self.has_creation_access(hanzo_name),
             Err(_) => Ok(false),
@@ -214,8 +219,8 @@ mod tests {
     use crate::{
         hanzo_message::{
             hanzo_message::{
-                ExternalMetadata, InternalMetadata, MessageBody, MessageData, NodeApiData, HanzoBody, HanzoData,
-                HanzoVersion,
+                ExternalMetadata, HanzoBody, HanzoData, HanzoVersion, InternalMetadata,
+                MessageBody, MessageData, NodeApiData,
             },
             hanzo_message_schemas::MessageSchemaType,
         },
@@ -305,7 +310,8 @@ mod tests {
     // Test creation of InboxNameManager instance from an inbox name
     #[test]
     fn test_from_inbox_name() {
-        let inbox_name = "inbox::@@node1.hanzo/subidentity::@@node2.hanzo/subidentity2::true".to_string();
+        let inbox_name =
+            "inbox::@@node1.hanzo/subidentity::@@node2.hanzo/subidentity2::true".to_string();
         let manager = InboxName::new(inbox_name.clone()).unwrap();
 
         match &manager {
@@ -448,7 +454,8 @@ mod tests {
     #[test]
     fn test_has_creation_access() {
         let manager = InboxName::new(
-            "inbox::@@node1.hanzo/subidentity::@@node2.hanzo::@@node3.hanzo/subidentity3::true".to_string(),
+            "inbox::@@node1.hanzo/subidentity::@@node2.hanzo::@@node3.hanzo/subidentity3::true"
+                .to_string(),
         )
         .unwrap();
 

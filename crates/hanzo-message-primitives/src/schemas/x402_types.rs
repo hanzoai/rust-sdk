@@ -75,7 +75,13 @@ pub struct PaymentRequirements {
 }
 
 impl PaymentRequirements {
-    pub fn new(network: Network, max_amount_required: String, pay_to: String, asset: String, resource: String) -> Self {
+    pub fn new(
+        network: Network,
+        max_amount_required: String,
+        pay_to: String,
+        asset: String,
+        resource: String,
+    ) -> Self {
         Self {
             scheme: "exact".to_string(),
             description: String::new(),

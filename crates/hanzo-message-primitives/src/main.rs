@@ -1,6 +1,6 @@
-mod schemas;
 mod hanzo_message;
 mod hanzo_utils;
+mod schemas;
 
 use std::error::Error;
 

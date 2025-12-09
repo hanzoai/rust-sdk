@@ -5,11 +5,15 @@ use std::{fmt, net::SocketAddr};
 use x25519_dalek::PublicKey as EncryptionPublicKey;
 
 use crate::hanzo_message::hanzo_message_schemas::IdentityPermissions;
-use crate::hanzo_utils::encryption::{encryption_public_key_to_string, encryption_public_key_to_string_ref};
-use crate::hanzo_utils::signatures::{signature_public_key_to_string, signature_public_key_to_string_ref};
+use crate::hanzo_utils::encryption::{
+    encryption_public_key_to_string, encryption_public_key_to_string_ref,
+};
+use crate::hanzo_utils::signatures::{
+    signature_public_key_to_string, signature_public_key_to_string_ref,
+};
 
-use super::llm_providers::serialized_llm_provider::SerializedLLMProvider;
 use super::hanzo_name::HanzoName;
+use super::llm_providers::serialized_llm_provider::SerializedLLMProvider;
 
 #[derive(Debug, PartialEq, PartialOrd, Eq, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -107,7 +111,9 @@ impl Identity {
 
     pub fn has_admin_permissions(&self) -> bool {
         match self {
-            Identity::Standard(std_identity) => std_identity.permission_type == IdentityPermissions::Admin,
+            Identity::Standard(std_identity) => {
+                std_identity.permission_type == IdentityPermissions::Admin
+            }
             Identity::LLMProvider(_) => false, // Assuming LLM providers don't have admin permissions
             Identity::Device(device) => device.permission_type == IdentityPermissions::Admin,
         }
@@ -182,11 +188,15 @@ impl Serialize for StandardIdentity {
         )?;
         s.serialize_field(
             "profile_encryption_public_key",
-            &self.profile_encryption_public_key.map(encryption_public_key_to_string),
+            &self
+                .profile_encryption_public_key
+                .map(encryption_public_key_to_string),
         )?;
         s.serialize_field(
             "profile_signature_public_key",
-            &self.profile_signature_public_key.map(signature_public_key_to_string),
+            &self
+                .profile_signature_public_key
+                .map(signature_public_key_to_string),
         )?;
         s.serialize_field("identity_type", &self.identity_type)?;
         s.serialize_field("permission_type", &self.permission_type)?;
@@ -206,17 +216,19 @@ impl StandardIdentity {
         permission_type: IdentityPermissions,
     ) -> Self {
         // If Identity is of type Global or Agent, clear the subidentity keys
-        let subidentity_encryption_public_key = if matches!(identity_type, StandardIdentityType::Global) {
-            None
-        } else {
-            subidentity_encryption_public_key
-        };
+        let subidentity_encryption_public_key =
+            if matches!(identity_type, StandardIdentityType::Global) {
+                None
+            } else {
+                subidentity_encryption_public_key
+            };
 
-        let subidentity_signature_public_key = if matches!(identity_type, StandardIdentityType::Global) {
-            None
-        } else {
-            subidentity_signature_public_key
-        };
+        let subidentity_signature_public_key =
+            if matches!(identity_type, StandardIdentityType::Global) {
+                None
+            } else {
+                subidentity_signature_public_key
+            };
 
         Self {
             full_identity_name,
@@ -233,8 +245,10 @@ impl StandardIdentity {
 
 impl fmt::Display for StandardIdentity {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let node_encryption_public_key = encryption_public_key_to_string(self.node_encryption_public_key);
-        let node_signature_public_key = signature_public_key_to_string(self.node_signature_public_key);
+        let node_encryption_public_key =
+            encryption_public_key_to_string(self.node_encryption_public_key);
+        let node_signature_public_key =
+            signature_public_key_to_string(self.node_signature_public_key);
 
         let profile_encryption_public_key = self
             .profile_encryption_public_key
@@ -298,13 +312,19 @@ impl Serialize for DeviceIdentity {
 
 impl fmt::Display for DeviceIdentity {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let node_encryption_public_key = encryption_public_key_to_string(self.node_encryption_public_key);
-        let node_signature_public_key = signature_public_key_to_string(self.node_signature_public_key);
+        let node_encryption_public_key =
+            encryption_public_key_to_string(self.node_encryption_public_key);
+        let node_signature_public_key =
+            signature_public_key_to_string(self.node_signature_public_key);
 
-        let profile_encryption_public_key = encryption_public_key_to_string_ref(&self.profile_encryption_public_key);
-        let profile_signature_public_key = signature_public_key_to_string_ref(&self.profile_signature_public_key);
-        let device_encryption_public_key = encryption_public_key_to_string_ref(&self.device_encryption_public_key);
-        let device_signature_public_key = signature_public_key_to_string_ref(&self.device_signature_public_key);
+        let profile_encryption_public_key =
+            encryption_public_key_to_string_ref(&self.profile_encryption_public_key);
+        let profile_signature_public_key =
+            signature_public_key_to_string_ref(&self.profile_signature_public_key);
+        let device_encryption_public_key =
+            encryption_public_key_to_string_ref(&self.device_encryption_public_key);
+        let device_signature_public_key =
+            signature_public_key_to_string_ref(&self.device_signature_public_key);
 
         write!(f, "DeviceIdentity {{ full_identity_name: {}, node_encryption_public_key: {:?}, node_signature_public_key: {:?}, profile_encryption_public_key: {}, profile_signature_public_key: {}, device_encryption_public_key: {}, device_signature_public_key: {}, permission_type: {:?} }}",
             self.full_identity_name,
@@ -330,8 +350,10 @@ impl fmt::Debug for Identity {
                 write!(f, "Agent({:?})", agent)
             }
             Identity::Device(device) => {
-                let node_encryption_public_key = encryption_public_key_to_string(device.node_encryption_public_key);
-                let node_signature_public_key = signature_public_key_to_string(device.node_signature_public_key);
+                let node_encryption_public_key =
+                    encryption_public_key_to_string(device.node_encryption_public_key);
+                let node_signature_public_key =
+                    signature_public_key_to_string(device.node_signature_public_key);
                 let profile_encryption_public_key =
                     encryption_public_key_to_string_ref(&device.profile_encryption_public_key);
                 let profile_signature_public_key =

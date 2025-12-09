@@ -1,5 +1,5 @@
 //! W3C DID (Decentralized Identifier) implementation
-//! 
+//!
 //! Based on W3C DID Core specification: https://www.w3.org/TR/did-core/
 
 use regex::Regex;
@@ -10,23 +10,23 @@ use std::str::FromStr;
 use crate::error::DIDError;
 
 /// A W3C compliant Decentralized Identifier
-/// 
+///
 /// Format: did:method:method-specific-id
 /// Example: did:hanzo:eth:0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb7
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct DID {
     /// The DID method (e.g., "hanzo", "ethr", "key", "web")
     pub method: String,
-    
+
     /// Method-specific identifier
     pub id: String,
-    
+
     /// Optional path component
     pub path: Option<String>,
-    
+
     /// Optional query parameters
     pub query: Option<String>,
-    
+
     /// Optional fragment (for referencing parts of DID document)
     pub fragment: Option<String>,
 }
@@ -126,20 +126,35 @@ impl DID {
         let regex = Regex::new(r"^did:([a-z0-9]+):([a-zA-Z0-9:._-]+)(/[^?#]*)?(\?[^#]*)?(#.*)?$")
             .map_err(|e| DIDError::InvalidFormat(format!("Regex error: {e}")))?;
 
-        let captures = regex.captures(did_string)
+        let captures = regex
+            .captures(did_string)
             .ok_or_else(|| DIDError::InvalidFormat(format!("Invalid DID format: {did_string}")))?;
 
-        let method = captures.get(1)
+        let method = captures
+            .get(1)
             .ok_or_else(|| DIDError::InvalidFormat("Missing method".to_string()))?
-            .as_str().to_string();
+            .as_str()
+            .to_string();
 
-        let id = captures.get(2)
+        let id = captures
+            .get(2)
             .ok_or_else(|| DIDError::InvalidFormat("Missing method-specific-id".to_string()))?
-            .as_str().to_string();
+            .as_str()
+            .to_string();
 
         let path = captures.get(3).map(|m| m.as_str().to_string());
-        let query = captures.get(4).map(|m| m.as_str().strip_prefix('?').unwrap_or(m.as_str()).to_string());
-        let fragment = captures.get(5).map(|m| m.as_str().strip_prefix('#').unwrap_or(m.as_str()).to_string());
+        let query = captures.get(4).map(|m| {
+            m.as_str()
+                .strip_prefix('?')
+                .unwrap_or(m.as_str())
+                .to_string()
+        });
+        let fragment = captures.get(5).map(|m| {
+            m.as_str()
+                .strip_prefix('#')
+                .unwrap_or(m.as_str())
+                .to_string()
+        });
 
         Ok(Self {
             method,
@@ -171,21 +186,21 @@ impl DID {
     /// Get the full DID string representation
     pub fn to_string_full(&self) -> String {
         let mut result = format!("did:{}:{}", self.method, self.id);
-        
+
         if let Some(path) = &self.path {
             result.push_str(path);
         }
-        
+
         if let Some(query) = &self.query {
             result.push('?');
             result.push_str(query);
         }
-        
+
         if let Some(fragment) = &self.fragment {
             result.push('#');
             result.push_str(fragment);
         }
-        
+
         result
     }
 
@@ -248,29 +263,25 @@ impl DID {
         let identifier = self.get_identifier();
         vec![
             // Primary networks
-            DID::hanzo(identifier.clone()),           // did:hanzo:zeekay
-            DID::lux(identifier.clone()),             // did:lux:zeekay
-
+            DID::hanzo(identifier.clone()), // did:hanzo:zeekay
+            DID::lux(identifier.clone()),   // did:lux:zeekay
             // Native chain DIDs
-            DID::eth(identifier.clone()),             // did:eth:zeekay
-            DID::base(identifier.clone()),            // did:base:zeekay
-            DID::polygon(identifier.clone()),         // did:polygon:zeekay
-            DID::arbitrum(identifier.clone()),        // did:arbitrum:zeekay
-            DID::optimism(identifier.clone()),        // did:optimism:zeekay
-
+            DID::eth(identifier.clone()),      // did:eth:zeekay
+            DID::base(identifier.clone()),     // did:base:zeekay
+            DID::polygon(identifier.clone()),  // did:polygon:zeekay
+            DID::arbitrum(identifier.clone()), // did:arbitrum:zeekay
+            DID::optimism(identifier.clone()), // did:optimism:zeekay
             // Local development
-            DID::hanzo_local(identifier.clone()),     // did:hanzo:local:zeekay
-            DID::lux_local(identifier.clone()),       // did:lux:local:zeekay
-
+            DID::hanzo_local(identifier.clone()), // did:hanzo:local:zeekay
+            DID::lux_local(identifier.clone()),   // did:lux:local:zeekay
             // Testnets
-            DID::sepolia(identifier.clone()),         // did:sepolia:zeekay
-            DID::base_sepolia(identifier.clone()),    // did:base-sepolia:zeekay
-
+            DID::sepolia(identifier.clone()), // did:sepolia:zeekay
+            DID::base_sepolia(identifier.clone()), // did:base-sepolia:zeekay
             // Explicit Hanzo chain mappings
-            DID::hanzo_eth(identifier.clone()),       // did:hanzo:eth:zeekay
-            DID::hanzo_sepolia(identifier.clone()),   // did:hanzo:sepolia:zeekay
-            DID::hanzo_base(identifier.clone()),      // did:hanzo:base:zeekay
-            DID::lux_chain("fuji", identifier),       // did:lux:fuji:zeekay
+            DID::hanzo_eth(identifier.clone()), // did:hanzo:eth:zeekay
+            DID::hanzo_sepolia(identifier.clone()), // did:hanzo:sepolia:zeekay
+            DID::hanzo_base(identifier.clone()), // did:hanzo:base:zeekay
+            DID::lux_chain("fuji", identifier), // did:lux:fuji:zeekay
         ]
     }
 
@@ -298,11 +309,11 @@ impl FromStr for DID {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         // W3C DID regex pattern
-        let did_regex = Regex::new(
-            r"^did:([a-z0-9]+):([^?#]+)(/[^?#]*)?(\?[^#]*)?(#.*)?$"
-        ).unwrap();
+        let did_regex =
+            Regex::new(r"^did:([a-z0-9]+):([^?#]+)(/[^?#]*)?(\?[^#]*)?(#.*)?$").unwrap();
 
-        let captures = did_regex.captures(s)
+        let captures = did_regex
+            .captures(s)
             .ok_or_else(|| DIDError::InvalidFormat(s.to_string()))?;
 
         let method = captures.get(1).unwrap().as_str().to_string();
@@ -368,11 +379,9 @@ impl Network {
 
     /// Check if this is a testnet
     pub fn is_testnet(&self) -> bool {
-        matches!(self,
-            Network::Sepolia |
-            Network::BaseSepolia |
-            Network::LuxFuji |
-            Network::Local
+        matches!(
+            self,
+            Network::Sepolia | Network::BaseSepolia | Network::LuxFuji | Network::Local
         )
     }
 
@@ -448,7 +457,10 @@ mod tests {
         assert_eq!(did.method, "hanzo");
         assert_eq!(did.id, "eth:0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb7");
         assert_eq!(did.get_network(), Some(Network::Ethereum));
-        assert_eq!(did.get_identifier(), "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb7");
+        assert_eq!(
+            did.get_identifier(),
+            "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb7"
+        );
 
         // Test simple DID
         let simple_did = DID::from_str("did:hanzo:zeekay").unwrap();

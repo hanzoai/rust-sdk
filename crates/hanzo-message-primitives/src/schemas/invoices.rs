@@ -39,9 +39,9 @@ pub struct Invoice {
     pub address: PublicAddress,
     pub tool_data: Option<Value>, // expected to have all of the required input_args: Vec<ToolArgument>,
     pub response_date_time: Option<DateTime<Utc>>, // when the response was sent back to the requester
-    pub result_str: Option<String>, /* depending on the tool, the result varies
-                                   * Note: Maybe add something related to current estimated response times
-                                   * average response time / congestion level or something like that */
+    pub result_str: Option<String>,                /* depending on the tool, the result varies
+                                                    * Note: Maybe add something related to current estimated response times
+                                                    * average response time / congestion level or something like that */
 }
 
 impl PartialOrd for Invoice {
@@ -79,7 +79,11 @@ impl fmt::Display for InvoiceError {
         match self {
             InvoiceError::InvalidToolKeyFormat => write!(f, "Invalid tool_key_name format"),
             InvoiceError::NodeNameMismatch { expected, found } => {
-                write!(f, "Node name mismatch: expected {}, found {}", expected, found)
+                write!(
+                    f,
+                    "Node name mismatch: expected {}, found {}",
+                    expected, found
+                )
             }
             InvoiceError::OperationFailed(msg) => write!(f, "Operation failed: {}", msg),
         }
@@ -102,7 +106,10 @@ pub struct InvoiceRequest {
 }
 
 impl InvoiceRequest {
-    pub fn validate_and_convert_tool_key(&self, node_name: &HanzoName) -> Result<String, InvoiceError> {
+    pub fn validate_and_convert_tool_key(
+        &self,
+        node_name: &HanzoName,
+    ) -> Result<String, InvoiceError> {
         // Extract the node name from the tool_key_name
         let parts: Vec<&str> = self.tool_key_name.split(":::").collect();
         if parts.len() < 3 {

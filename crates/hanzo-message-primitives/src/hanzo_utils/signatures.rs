@@ -68,7 +68,8 @@ pub fn string_to_signature_public_key(encoded_key: &str) -> Result<VerifyingKey,
         Ok(bytes) => {
             if bytes.len() == ed25519_dalek::PUBLIC_KEY_LENGTH {
                 let bytes_array: [u8; 32] = bytes.try_into().unwrap();
-                VerifyingKey::from_bytes(&bytes_array).map_err(|_| "Failed to create PublicKey from bytes")
+                VerifyingKey::from_bytes(&bytes_array)
+                    .map_err(|_| "Failed to create PublicKey from bytes")
             } else {
                 Err("Decoded string length does not match PublicKey length")
             }

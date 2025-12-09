@@ -39,9 +39,9 @@ pub use types::{InputItem, ModelResponse, RunItem};
 
 /// Re-export commonly used types
 pub mod prelude {
+    pub use crate::types::Usage;
     pub use crate::{
         Agent, AgentBuilder, AgentError, FunctionTool, RunConfig, RunContext, RunResult, Runner,
         Tool,
     };
-    pub use crate::types::Usage;
 }

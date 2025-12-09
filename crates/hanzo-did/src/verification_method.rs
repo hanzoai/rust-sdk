@@ -1,5 +1,5 @@
 //! W3C Verification Methods
-//! 
+//!
 //! Based on: https://www.w3.org/TR/did-core/#verification-methods
 
 use serde::{Deserialize, Serialize};
@@ -96,7 +96,9 @@ impl fmt::Display for VerificationMethodType {
             Self::Ed25519VerificationKey2018 => write!(f, "Ed25519VerificationKey2018"),
             Self::X25519KeyAgreementKey2020 => write!(f, "X25519KeyAgreementKey2020"),
             Self::X25519KeyAgreementKey2019 => write!(f, "X25519KeyAgreementKey2019"),
-            Self::EcdsaSecp256k1VerificationKey2019 => write!(f, "EcdsaSecp256k1VerificationKey2019"),
+            Self::EcdsaSecp256k1VerificationKey2019 => {
+                write!(f, "EcdsaSecp256k1VerificationKey2019")
+            }
             Self::EcdsaSecp256k1RecoveryMethod2020 => write!(f, "EcdsaSecp256k1RecoveryMethod2020"),
             Self::JsonWebKey2020 => write!(f, "JsonWebKey2020"),
             Self::Bls12381G2Key2020 => write!(f, "Bls12381G2Key2020"),
@@ -109,14 +111,10 @@ impl fmt::Display for VerificationMethodType {
 
 impl VerificationMethod {
     /// Create a new Ed25519 verification method
-    pub fn new_ed25519(
-        id: String,
-        controller: String,
-        public_key: &[u8; 32],
-    ) -> Self {
+    pub fn new_ed25519(id: String, controller: String, public_key: &[u8; 32]) -> Self {
         use multibase::Base;
         let public_key_multibase = multibase::encode(Base::Base58Btc, public_key);
-        
+
         Self {
             id,
             type_: VerificationMethodType::Ed25519VerificationKey2020,
@@ -127,14 +125,10 @@ impl VerificationMethod {
     }
 
     /// Create a new X25519 key agreement method
-    pub fn new_x25519(
-        id: String,
-        controller: String,
-        public_key: &[u8; 32],
-    ) -> Self {
+    pub fn new_x25519(id: String, controller: String, public_key: &[u8; 32]) -> Self {
         use multibase::Base;
         let public_key_multibase = multibase::encode(Base::Base58Btc, public_key);
-        
+
         Self {
             id,
             type_: VerificationMethodType::X25519KeyAgreementKey2020,
@@ -145,11 +139,7 @@ impl VerificationMethod {
     }
 
     /// Create an Ethereum-style verification method
-    pub fn new_ethereum(
-        id: String,
-        controller: String,
-        ethereum_address: String,
-    ) -> Self {
+    pub fn new_ethereum(id: String, controller: String, ethereum_address: String) -> Self {
         Self {
             id,
             type_: VerificationMethodType::EcdsaSecp256k1RecoveryMethod2020,
@@ -161,21 +151,23 @@ impl VerificationMethod {
 
     /// Check if this is a signing method
     pub fn is_signing_method(&self) -> bool {
-        matches!(self.type_,
-            VerificationMethodType::Ed25519VerificationKey2020 |
-            VerificationMethodType::Ed25519VerificationKey2018 |
-            VerificationMethodType::EcdsaSecp256k1VerificationKey2019 |
-            VerificationMethodType::EcdsaSecp256k1RecoveryMethod2020 |
-            VerificationMethodType::Bls12381G2Key2020 |
-            VerificationMethodType::RsaVerificationKey2018
+        matches!(
+            self.type_,
+            VerificationMethodType::Ed25519VerificationKey2020
+                | VerificationMethodType::Ed25519VerificationKey2018
+                | VerificationMethodType::EcdsaSecp256k1VerificationKey2019
+                | VerificationMethodType::EcdsaSecp256k1RecoveryMethod2020
+                | VerificationMethodType::Bls12381G2Key2020
+                | VerificationMethodType::RsaVerificationKey2018
         )
     }
 
     /// Check if this is a key agreement method
     pub fn is_key_agreement_method(&self) -> bool {
-        matches!(self.type_,
-            VerificationMethodType::X25519KeyAgreementKey2020 |
-            VerificationMethodType::X25519KeyAgreementKey2019
+        matches!(
+            self.type_,
+            VerificationMethodType::X25519KeyAgreementKey2020
+                | VerificationMethodType::X25519KeyAgreementKey2019
         )
     }
 }

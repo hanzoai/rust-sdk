@@ -1,5 +1,5 @@
 //! W3C DID Document implementation
-//! 
+//!
 //! Based on: https://www.w3.org/TR/did-core/#did-documents
 
 use chrono::{DateTime, Utc};
@@ -8,12 +8,12 @@ use serde_json::Value;
 use std::collections::HashMap;
 
 use crate::did::DID;
+use crate::proof::Proof;
 use crate::service::Service;
 use crate::verification_method::VerificationMethod;
-use crate::proof::Proof;
 
 /// W3C DID Document
-/// 
+///
 /// A DID document is the resource that is associated with a DID
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -150,14 +150,16 @@ impl DIDDocument {
 
     /// Find a verification method by ID
     pub fn find_verification_method(&self, id: &str) -> Option<&VerificationMethod> {
-        self.verification_method.as_ref()?.iter()
+        self.verification_method
+            .as_ref()?
+            .iter()
             .find(|m| m.id == id || m.id.ends_with(&format!("#{id}")))
     }
 
     /// Get all verification methods for authentication
     pub fn get_authentication_methods(&self) -> Vec<&VerificationMethod> {
         let mut methods = Vec::new();
-        
+
         if let Some(auth_refs) = &self.authentication {
             for auth_ref in auth_refs {
                 match auth_ref {
@@ -172,7 +174,7 @@ impl DIDDocument {
                 }
             }
         }
-        
+
         methods
     }
 
@@ -199,7 +201,9 @@ impl DIDDocument {
             for auth_ref in auth {
                 if let VerificationRelationship::Reference(id) = auth_ref {
                     if self.find_verification_method(id).is_none() {
-                        errors.push(format!("Authentication references non-existent verification method: {id}"));
+                        errors.push(format!(
+                            "Authentication references non-existent verification method: {id}"
+                        ));
                     }
                 }
             }
@@ -294,7 +298,9 @@ mod tests {
             id: format!("{}#key-1", did),
             type_: VerificationMethodType::Ed25519VerificationKey2020,
             controller: did.to_string(),
-            public_key_multibase: Some("z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK".to_string()),
+            public_key_multibase: Some(
+                "z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK".to_string(),
+            ),
             ..Default::default()
         };
 
@@ -316,7 +322,9 @@ mod tests {
             id: vm_id.clone(),
             type_: VerificationMethodType::Ed25519VerificationKey2020,
             controller: did.to_string(),
-            public_key_multibase: Some("z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK".to_string()),
+            public_key_multibase: Some(
+                "z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK".to_string(),
+            ),
             ..Default::default()
         };
 
@@ -324,7 +332,7 @@ mod tests {
 
         // Find by full ID
         assert!(doc.find_verification_method(&vm_id).is_some());
-        
+
         // Find by fragment
         assert!(doc.find_verification_method("key-1").is_some());
     }

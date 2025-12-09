@@ -4,8 +4,11 @@ use std::collections::HashMap;
 use utoipa::ToSchema;
 
 use crate::{
-    schemas::{crontab::CronTask, job_config::JobConfig, hanzo_name::HanzoName, tool_router_key::ToolRouterKey},
     hanzo_utils::job_scope::MinimalJobScope,
+    schemas::{
+        crontab::CronTask, hanzo_name::HanzoName, job_config::JobConfig,
+        tool_router_key::ToolRouterKey,
+    },
 };
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, ToSchema)]
@@ -149,7 +152,10 @@ mod tests {
         let config_map = agent.tools_config_override.unwrap();
         assert!(config_map.contains_key("local:::__some_name:::tool1"));
         let tool_config = config_map.get("local:::__some_name:::tool1").unwrap();
-        assert_eq!(tool_config.get("api_key").unwrap().as_str().unwrap(), "test-api-key");
+        assert_eq!(
+            tool_config.get("api_key").unwrap().as_str().unwrap(),
+            "test-api-key"
+        );
         assert_eq!(tool_config.get("timeout").unwrap().as_i64().unwrap(), 30);
     }
 }

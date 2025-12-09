@@ -1,6 +1,6 @@
 //! Demo of W3C DID usage with omnichain identity support
 
-use hanzo_did::{DID, DIDDocument, VerificationMethod, Service};
+use hanzo_did::{DIDDocument, Service, VerificationMethod, DID};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Hanzo Omnichain DID Demo");
@@ -38,9 +38,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Omnichain identity verification
     println!("\nOmnichain Identity Verification:");
-    println!("  hanzo:zeekay == lux:zeekay? {}", hanzo_did.is_same_entity(&lux_did));
-    println!("  hanzo:zeekay == eth:zeekay? {}", hanzo_did.is_same_entity(&eth_did));
-    println!("  eth:zeekay == base:zeekay? {}", eth_did.is_same_entity(&base_did));
+    println!(
+        "  hanzo:zeekay == lux:zeekay? {}",
+        hanzo_did.is_same_entity(&lux_did)
+    );
+    println!(
+        "  hanzo:zeekay == eth:zeekay? {}",
+        hanzo_did.is_same_entity(&eth_did)
+    );
+    println!(
+        "  eth:zeekay == base:zeekay? {}",
+        eth_did.is_same_entity(&base_did)
+    );
     println!("  Base identifier: '{}'", hanzo_did.get_identifier());
 
     // Show all network variants for this identity
@@ -55,10 +64,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Add verification method (example public key)
     let example_key = [
-        0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0,
-        0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0,
-        0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0,
-        0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0,
+        0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0, 0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde,
+        0xf0, 0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0, 0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc,
+        0xde, 0xf0,
     ];
 
     let vm = VerificationMethod::new_ed25519(
@@ -76,10 +84,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "https://api.hanzo.network".to_string(),
     );
 
-    let messaging_service = Service::messaging(
-        &hanzo_did.to_string(),
-        "wss://ws.hanzo.network".to_string(),
-    );
+    let messaging_service =
+        Service::messaging(&hanzo_did.to_string(), "wss://ws.hanzo.network".to_string());
 
     did_doc.service = Some(vec![hanzo_service, messaging_service]);
 

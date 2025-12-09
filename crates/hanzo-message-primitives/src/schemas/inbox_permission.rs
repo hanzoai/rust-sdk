@@ -22,7 +22,10 @@ impl InboxPermission {
             1 => Ok(InboxPermission::Read),
             2 => Ok(InboxPermission::Write),
             3 => Ok(InboxPermission::Admin),
-            _ => Err(Box::<dyn Error>::from(format!("Invalid permission string: {}", val))),
+            _ => Err(Box::<dyn Error>::from(format!(
+                "Invalid permission string: {}",
+                val
+            ))),
         }
     }
 }

@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use super::{
-    hanzo_message::{MessageBody, MessageData, NodeApiData, HanzoMessage},
+    hanzo_message::{HanzoMessage, MessageBody, MessageData, NodeApiData},
     hanzo_message_error::HanzoMessageError,
     hanzo_message_schemas::{JobMessage, MessageSchemaType},
 };
@@ -22,14 +22,18 @@ impl HanzoMessage {
                     "Message data is encrypted".into(),
                 )),
             },
-            _ => Err(HanzoMessageError::MissingMessageBody("Missing message body".into())),
+            _ => Err(HanzoMessageError::MissingMessageBody(
+                "Missing message body".into(),
+            )),
         }
     }
 
     pub fn get_message_inbox(&self) -> Result<String, HanzoMessageError> {
         match &self.body {
             MessageBody::Unencrypted(body) => Ok(body.internal_metadata.inbox.clone()),
-            _ => Err(HanzoMessageError::MissingMessageBody("Missing message body".into())),
+            _ => Err(HanzoMessageError::MissingMessageBody(
+                "Missing message body".into(),
+            )),
         }
     }
 
@@ -40,7 +44,9 @@ impl HanzoMessage {
                     if data.message_content_schema == MessageSchemaType::JobMessageSchema {
                         let job_message: JobMessage =
                             serde_json::from_str(&data.message_raw_content).map_err(|_| {
-                                HanzoMessageError::InvalidMessageSchemaType("Failed to parse JobMessage".into())
+                                HanzoMessageError::InvalidMessageSchemaType(
+                                    "Failed to parse JobMessage".into(),
+                                )
                             })?;
                         Ok(job_message.parent.unwrap_or_default())
                     } else {
@@ -53,7 +59,9 @@ impl HanzoMessage {
                     "Message data is encrypted".into(),
                 )),
             },
-            _ => Err(HanzoMessageError::MissingMessageBody("Missing message body".into())),
+            _ => Err(HanzoMessageError::MissingMessageBody(
+                "Missing message body".into(),
+            )),
         }
     }
 
@@ -65,7 +73,9 @@ impl HanzoMessage {
                     "Message data is encrypted".into(),
                 )),
             },
-            _ => Err(HanzoMessageError::MissingMessageBody("Missing message body".into())),
+            _ => Err(HanzoMessageError::MissingMessageBody(
+                "Missing message body".into(),
+            )),
         }
     }
 
@@ -108,7 +118,9 @@ impl HanzoMessage {
     pub fn is_content_currently_encrypted(&self) -> bool {
         match &self.body {
             MessageBody::Encrypted(_) => true,
-            MessageBody::Unencrypted(body) => matches!(body.message_data, MessageData::Encrypted(_)),
+            MessageBody::Unencrypted(body) => {
+                matches!(body.message_data, MessageData::Encrypted(_))
+            }
         }
     }
 
@@ -124,7 +136,10 @@ impl HanzoMessage {
     }
 
     /// Attempts to update the node_api_data inside of the inner metadata. Errors if the message is encrypted.
-    pub fn update_node_api_data(mut self, node_api_data: Option<NodeApiData>) -> Result<Self, HanzoMessageError> {
+    pub fn update_node_api_data(
+        mut self,
+        node_api_data: Option<NodeApiData>,
+    ) -> Result<Self, HanzoMessageError> {
         match &mut self.body {
             MessageBody::Unencrypted(body) => {
                 body.internal_metadata.node_api_data = node_api_data;
@@ -137,7 +152,8 @@ impl HanzoMessage {
     }
 
     pub fn encode_message(&self) -> Result<Vec<u8>, HanzoMessageError> {
-        serde_json::to_vec(&self).map_err(|err| HanzoMessageError::SerializationError(err.to_string()))
+        serde_json::to_vec(&self)
+            .map_err(|err| HanzoMessageError::SerializationError(err.to_string()))
     }
 
     pub fn decode_message_result(encoded: Vec<u8>) -> Result<Self, HanzoMessageError> {
@@ -158,7 +174,8 @@ impl HanzoMessage {
 
     pub fn to_string(&self) -> Result<String, HanzoMessageError> {
         let encoded = self.encode_message()?;
-        String::from_utf8(encoded).map_err(|err| HanzoMessageError::SerializationError(err.to_string()))
+        String::from_utf8(encoded)
+            .map_err(|err| HanzoMessageError::SerializationError(err.to_string()))
     }
 
     pub fn from_string(s: String) -> Result<Self, HanzoMessageError> {
@@ -171,7 +188,10 @@ impl HanzoMessage {
         Self::decode_message_result(bytes.to_vec())
     }
 
-    pub fn validate_message_schema(&self, schema: MessageSchemaType) -> Result<(), HanzoMessageError> {
+    pub fn validate_message_schema(
+        &self,
+        schema: MessageSchemaType,
+    ) -> Result<(), HanzoMessageError> {
         if let MessageBody::Unencrypted(body) = &self.body {
             if let MessageData::Unencrypted(data) = &body.message_data {
                 if data.message_content_schema != schema {
@@ -185,21 +205,28 @@ impl HanzoMessage {
                 ));
             }
         } else {
-            return Err(HanzoMessageError::MissingMessageBody("Missing message body".into()));
+            return Err(HanzoMessageError::MissingMessageBody(
+                "Missing message body".into(),
+            ));
         }
         Ok(())
     }
 
     pub fn is_receiver_subidentity_main(&self) -> bool {
         match &self.body {
-            MessageBody::Unencrypted(body) => body.internal_metadata.recipient_subidentity == "main",
+            MessageBody::Unencrypted(body) => {
+                body.internal_metadata.recipient_subidentity == "main"
+            }
             _ => false,
         }
     }
 
     pub fn is_receiver_subidentity_agent(&self) -> bool {
         match &self.body {
-            MessageBody::Unencrypted(body) => body.internal_metadata.recipient_subidentity.contains("agent"),
+            MessageBody::Unencrypted(body) => body
+                .internal_metadata
+                .recipient_subidentity
+                .contains("agent"),
             _ => false,
         }
     }

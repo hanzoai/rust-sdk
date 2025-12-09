@@ -5,12 +5,12 @@ use utoipa::ToSchema;
 use crate::hanzo_message::{hanzo_message::HanzoMessage, hanzo_message_schemas::V2ChatMessage};
 
 use super::{
+    hanzo_name::HanzoName,
     job_config::JobConfig,
     llm_providers::{
         agent::Agent,
         serialized_llm_provider::{LLMProviderInterface, SerializedLLMProvider},
     },
-    hanzo_name::HanzoName,
 };
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, ToSchema)]

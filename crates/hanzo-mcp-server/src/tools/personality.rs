@@ -1,10 +1,10 @@
+use once_cell::sync::Lazy;
+use serde::{Deserialize, Serialize};
 /// Enhanced tool personality system with 117+ programmer personalities
 use std::collections::{HashMap, HashSet};
-use serde::{Deserialize, Serialize};
-use once_cell::sync::Lazy;
-use std::sync::RwLock;
-use std::path::Path;
 use std::fs;
+use std::path::Path;
+use std::sync::RwLock;
 
 /// Represents a programmer personality with tool preferences
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -31,7 +31,11 @@ impl ToolPersonality {
         tools: Vec<String>,
     ) -> Self {
         // Deduplicate and sort tools
-        let mut unique_tools: Vec<String> = tools.into_iter().collect::<HashSet<_>>().into_iter().collect();
+        let mut unique_tools: Vec<String> = tools
+            .into_iter()
+            .collect::<HashSet<_>>()
+            .into_iter()
+            .collect();
         unique_tools.sort();
 
         Self {
@@ -80,14 +84,17 @@ impl PersonalityRegistry {
         // Ensure agent enabled if API keys present
         personality = ensure_agent_enabled(personality);
         // Deduplicate tools
-        let unique_tools: Vec<String> = personality.tools.into_iter()
+        let unique_tools: Vec<String> = personality
+            .tools
+            .into_iter()
             .collect::<HashSet<_>>()
             .into_iter()
             .collect();
         personality.tools = unique_tools;
         personality.tools.sort();
 
-        self.personalities.insert(personality.name.clone(), personality);
+        self.personalities
+            .insert(personality.name.clone(), personality);
     }
 
     pub fn add_personality(&mut self, personality: ToolPersonality) -> Result<(), String> {
@@ -107,25 +114,29 @@ impl PersonalityRegistry {
     }
 
     pub fn export(&self, include_tools: bool) -> Vec<HashMap<String, serde_json::Value>> {
-        self.personalities.values().map(|p| {
-            let mut export = HashMap::new();
-            export.insert("name".to_string(), serde_json::json!(p.name));
-            export.insert("programmer".to_string(), serde_json::json!(p.programmer));
-            export.insert("description".to_string(), serde_json::json!(p.description));
-            export.insert("tool_count".to_string(), serde_json::json!(p.tools.len()));
-            export.insert("tags".to_string(), serde_json::json!(p.tags));
-            if let Some(philosophy) = &p.philosophy {
-                export.insert("philosophy".to_string(), serde_json::json!(philosophy));
-            }
-            if include_tools {
-                export.insert("tools".to_string(), serde_json::json!(p.tools));
-            }
-            export
-        }).collect()
+        self.personalities
+            .values()
+            .map(|p| {
+                let mut export = HashMap::new();
+                export.insert("name".to_string(), serde_json::json!(p.name));
+                export.insert("programmer".to_string(), serde_json::json!(p.programmer));
+                export.insert("description".to_string(), serde_json::json!(p.description));
+                export.insert("tool_count".to_string(), serde_json::json!(p.tools.len()));
+                export.insert("tags".to_string(), serde_json::json!(p.tags));
+                if let Some(philosophy) = &p.philosophy {
+                    export.insert("philosophy".to_string(), serde_json::json!(philosophy));
+                }
+                if include_tools {
+                    export.insert("tools".to_string(), serde_json::json!(p.tools));
+                }
+                export
+            })
+            .collect()
     }
 
     pub fn filter_by_tags(&self, tags: &[String]) -> Vec<&ToolPersonality> {
-        self.personalities.values()
+        self.personalities
+            .values()
             .filter(|p| tags.iter().any(|tag| p.tags.contains(tag)))
             .collect()
     }
@@ -181,24 +192,104 @@ const DATABASE_TOOLS: &[&str] = &["sql_query", "sql_search", "graph_add", "graph
 const VECTOR_TOOLS: &[&str] = &["vector_index", "vector_search", "embeddings"];
 
 // Modern DevOps & Cloud tools
-const DEVOPS_TOOLS: &[&str] = &["docker", "container_build", "k8s", "kubectl", "helm", "kustomize", "minikube"];
-const CI_CD_TOOLS: &[&str] = &["ci", "github_actions", "gitlab_ci", "jenkins", "circleci", "artifact_publish"];
-const CLOUD_TOOLS: &[&str] = &["terraform", "ansible", "cloud_cli", "aws_s3", "kms", "secrets_manager"];
-const OBSERVABILITY_TOOLS: &[&str] = &["prometheus", "grafana", "otel", "logs", "tracing", "slo", "chaos"];
+const DEVOPS_TOOLS: &[&str] = &[
+    "docker",
+    "container_build",
+    "k8s",
+    "kubectl",
+    "helm",
+    "kustomize",
+    "minikube",
+];
+const CI_CD_TOOLS: &[&str] = &[
+    "ci",
+    "github_actions",
+    "gitlab_ci",
+    "jenkins",
+    "circleci",
+    "artifact_publish",
+];
+const CLOUD_TOOLS: &[&str] = &[
+    "terraform",
+    "ansible",
+    "cloud_cli",
+    "aws_s3",
+    "kms",
+    "secrets_manager",
+];
+const OBSERVABILITY_TOOLS: &[&str] = &[
+    "prometheus",
+    "grafana",
+    "otel",
+    "logs",
+    "tracing",
+    "slo",
+    "chaos",
+];
 
 // Security & Quality tools
-const SECURITY_TOOLS: &[&str] = &["sast", "dast", "fuzz", "dependency_scan", "secret_scan", "sigstore", "sbom", "snyk", "trivy"];
-const TESTING_TOOLS: &[&str] = &["pytest", "jest", "mocha", "go_test", "linters", "formatter", "coverage"];
+const SECURITY_TOOLS: &[&str] = &[
+    "sast",
+    "dast",
+    "fuzz",
+    "dependency_scan",
+    "secret_scan",
+    "sigstore",
+    "sbom",
+    "snyk",
+    "trivy",
+];
+const TESTING_TOOLS: &[&str] = &[
+    "pytest",
+    "jest",
+    "mocha",
+    "go_test",
+    "linters",
+    "formatter",
+    "coverage",
+];
 
 // ML/DataOps tools
-const ML_TOOLS: &[&str] = &["mlflow", "dvc", "kedro", "mlem", "model_registry", "feature_store", "jupyter", "notebook"];
-const AI_OPS_TOOLS: &[&str] = &["model_deploy", "gpu_manager", "quantize", "onnx_convert", "huggingface", "hf_hub"];
+const ML_TOOLS: &[&str] = &[
+    "mlflow",
+    "dvc",
+    "kedro",
+    "mlem",
+    "model_registry",
+    "feature_store",
+    "jupyter",
+    "notebook",
+];
+const AI_OPS_TOOLS: &[&str] = &[
+    "model_deploy",
+    "gpu_manager",
+    "quantize",
+    "onnx_convert",
+    "huggingface",
+    "hf_hub",
+];
 
 // Developer UX tools
-const DEV_UX_TOOLS: &[&str] = &["ngrok", "localstack", "devcontainer", "vscode_remote", "repl", "watch", "hot_reload"];
+const DEV_UX_TOOLS: &[&str] = &[
+    "ngrok",
+    "localstack",
+    "devcontainer",
+    "vscode_remote",
+    "repl",
+    "watch",
+    "hot_reload",
+];
 
 // Utility tools
-const UTILITY_TOOLS: &[&str] = &["package_manager", "image_scan", "signing", "notebook", "batch", "todo", "rules"];
+const UTILITY_TOOLS: &[&str] = &[
+    "package_manager",
+    "image_scan",
+    "signing",
+    "notebook",
+    "batch",
+    "todo",
+    "rules",
+];
 
 /// Helper to combine tool arrays into a Vec<String>
 fn combine_tools(tool_sets: &[&[&str]]) -> Vec<String> {
@@ -213,7 +304,12 @@ fn combine_tools(tool_sets: &[&[&str]]) -> Vec<String> {
 
 /// Enable agent tool if API keys are present
 fn ensure_agent_enabled(mut personality: ToolPersonality) -> ToolPersonality {
-    let api_keys = ["OPENAI_API_KEY", "ANTHROPIC_API_KEY", "TOGETHER_API_KEY", "HANZO_API_KEY"];
+    let api_keys = [
+        "OPENAI_API_KEY",
+        "ANTHROPIC_API_KEY",
+        "TOGETHER_API_KEY",
+        "HANZO_API_KEY",
+    ];
 
     if api_keys.iter().any(|key| std::env::var(key).is_ok()) {
         if !personality.tools.contains(&"agent".to_string()) {
@@ -242,7 +338,10 @@ fn load_personalities_from_json() -> Result<Vec<ToolPersonality>, String> {
                     break;
                 }
                 Err(e) => {
-                    eprintln!("Warning: Failed to read personality file at {}: {}", path, e);
+                    eprintln!(
+                        "Warning: Failed to read personality file at {}: {}",
+                        path, e
+                    );
                 }
             }
         }
@@ -285,11 +384,21 @@ fn register_fallback_personalities(registry: &mut PersonalityRegistry) {
             "hanzo",
             "Hanzo AI Default",
             "Balanced productivity and quality",
-            combine_tools(&[ESSENTIAL_TOOLS, AI_TOOLS, SEARCH_TOOLS, BUILD_TOOLS,
-                           VERSION_CONTROL, &["multi_edit", "symbols", "watch", "todo", "rules"]])
+            combine_tools(&[
+                ESSENTIAL_TOOLS,
+                AI_TOOLS,
+                SEARCH_TOOLS,
+                BUILD_TOOLS,
+                VERSION_CONTROL,
+                &["multi_edit", "symbols", "watch", "todo", "rules"],
+            ]),
         )
         .with_philosophy("AI-powered development at scale.")
-        .with_tags(vec!["default".to_string(), "balanced".to_string(), "ai".to_string()])
+        .with_tags(vec![
+            "default".to_string(),
+            "balanced".to_string(),
+            "ai".to_string(),
+        ])
         .with_environment(HashMap::from([
             ("HANZO_MODE".to_string(), "enabled".to_string()),
             ("AI_ASSIST".to_string(), "true".to_string()),
@@ -301,11 +410,18 @@ fn register_fallback_personalities(registry: &mut PersonalityRegistry) {
             "minimal",
             "Minimalist",
             "Just the essentials",
-            ESSENTIAL_TOOLS.iter().map(|s| s.to_string()).collect()
+            ESSENTIAL_TOOLS.iter().map(|s| s.to_string()).collect(),
         )
         .with_philosophy("Less is more.")
-        .with_tags(vec!["minimal".to_string(), "focused".to_string(), "simple".to_string()])
-        .with_environment(HashMap::from([("MINIMAL_MODE".to_string(), "true".to_string())])),
+        .with_tags(vec![
+            "minimal".to_string(),
+            "focused".to_string(),
+            "simple".to_string(),
+        ])
+        .with_environment(HashMap::from([(
+            "MINIMAL_MODE".to_string(),
+            "true".to_string(),
+        )])),
     );
 
     registry.register(
@@ -313,13 +429,15 @@ fn register_fallback_personalities(registry: &mut PersonalityRegistry) {
             "guido",
             "Guido van Rossum",
             "Python's BDFL - readability counts",
-            combine_tools(&[ESSENTIAL_TOOLS, &["uvx", "jupyter", "pytest", "formatter"]])
+            combine_tools(&[ESSENTIAL_TOOLS, &["uvx", "jupyter", "pytest", "formatter"]]),
         )
         .with_philosophy("There should be one-- and preferably only one --obvious way to do it.")
-        .with_tags(vec!["languages".to_string(), "python".to_string(), "readability".to_string()])
-        .with_environment(HashMap::from([
-            ("PYTHONPATH".to_string(), ".".to_string()),
-        ])),
+        .with_tags(vec![
+            "languages".to_string(),
+            "python".to_string(),
+            "readability".to_string(),
+        ])
+        .with_environment(HashMap::from([("PYTHONPATH".to_string(), ".".to_string())])),
     );
 
     registry.register(
@@ -327,13 +445,23 @@ fn register_fallback_personalities(registry: &mut PersonalityRegistry) {
             "linus",
             "Linus Torvalds",
             "Linux & Git creator - pragmatic excellence",
-            combine_tools(&[ESSENTIAL_TOOLS, &["git_search", "diff", "critic"], UNIX_TOOLS, VERSION_CONTROL])
+            combine_tools(&[
+                ESSENTIAL_TOOLS,
+                &["git_search", "diff", "critic"],
+                UNIX_TOOLS,
+                VERSION_CONTROL,
+            ]),
         )
         .with_philosophy("Talk is cheap. Show me the code.")
-        .with_tags(vec!["systems".to_string(), "linux".to_string(), "git".to_string()])
-        .with_environment(HashMap::from([
-            ("GIT_AUTHOR_NAME".to_string(), "Linus Torvalds".to_string()),
-        ])),
+        .with_tags(vec![
+            "systems".to_string(),
+            "linux".to_string(),
+            "git".to_string(),
+        ])
+        .with_environment(HashMap::from([(
+            "GIT_AUTHOR_NAME".to_string(),
+            "Linus Torvalds".to_string(),
+        )])),
     );
 }
 
@@ -342,14 +470,16 @@ pub mod api {
     use super::*;
 
     pub fn register(personality: ToolPersonality) -> Result<(), String> {
-        REGISTRY.write()
+        REGISTRY
+            .write()
             .map_err(|_| "Failed to acquire write lock")?
             .register(personality);
         Ok(())
     }
 
     pub fn add_personality(personality: ToolPersonality) -> Result<(), String> {
-        REGISTRY.write()
+        REGISTRY
+            .write()
             .map_err(|_| "Failed to acquire write lock")?
             .add_personality(personality)
     }
@@ -359,28 +489,32 @@ pub mod api {
     }
 
     pub fn list() -> Vec<ToolPersonality> {
-        REGISTRY.read()
+        REGISTRY
+            .read()
             .ok()
             .map(|r| r.list().into_iter().cloned().collect())
             .unwrap_or_default()
     }
 
     pub fn export(include_tools: bool) -> Vec<HashMap<String, serde_json::Value>> {
-        REGISTRY.read()
+        REGISTRY
+            .read()
             .ok()
             .map(|r| r.export(include_tools))
             .unwrap_or_default()
     }
 
     pub fn filter_by_tags(tags: &[String]) -> Vec<ToolPersonality> {
-        REGISTRY.read()
+        REGISTRY
+            .read()
             .ok()
             .map(|r| r.filter_by_tags(tags).into_iter().cloned().collect())
             .unwrap_or_default()
     }
 
     pub fn set_active(name: &str) -> Result<(), String> {
-        REGISTRY.write()
+        REGISTRY
+            .write()
             .map_err(|_| "Failed to acquire write lock")?
             .set_active(name)
     }
@@ -390,7 +524,8 @@ pub mod api {
     }
 
     pub fn get_active_tools() -> HashSet<String> {
-        REGISTRY.read()
+        REGISTRY
+            .read()
             .ok()
             .map(|r| r.get_active_tools())
             .unwrap_or_default()
@@ -444,7 +579,10 @@ mod tests {
         assert_eq!(registry.list().len(), 1);
 
         assert!(registry.set_active("test").is_ok());
-        assert_eq!(registry.get_active().map(|p| p.name.clone()), Some("test".to_string()));
+        assert_eq!(
+            registry.get_active().map(|p| p.name.clone()),
+            Some("test".to_string())
+        );
     }
 
     #[test]
@@ -468,7 +606,8 @@ mod tests {
         if all_personalities.iter().any(|p| !p.tags.is_empty()) {
             // JSON was loaded, test tag filtering
             let pioneers = api::filter_by_tags(&["pioneer".to_string()]);
-            assert!(pioneers.len() >= 0); // May be empty if JSON not loaded
+            // pioneers can be empty if JSON doesn't have 'pioneer' tag
+            let _ = pioneers; // Just verify no panic
         }
         // Test passes regardless - tag filtering is optional functionality
     }

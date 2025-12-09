@@ -42,8 +42,8 @@
 pub mod agents;
 pub mod prompts;
 pub mod registry;
-pub mod traits;
 pub mod tools;
+pub mod traits;
 
 pub use agents::*;
 pub use registry::{AgentRegistry, AgentType};
@@ -52,7 +52,7 @@ pub use traits::SpecializedAgent;
 /// Re-exports from hanzo-agent for convenience
 pub mod prelude {
     pub use crate::registry::{AgentRegistry, AgentType};
-    pub use crate::traits::SpecializedAgent;
     pub use crate::tools::ToolRegistry;
+    pub use crate::traits::SpecializedAgent;
     pub use hanzo_agent::prelude::*;
 }

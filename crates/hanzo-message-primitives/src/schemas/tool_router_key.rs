@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
-use super::indexable_version::IndexableVersion;
 use super::hanzo_name::HanzoName;
+use super::indexable_version::IndexableVersion;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, ToSchema)]
 #[serde(try_from = "String")]
@@ -57,7 +57,10 @@ impl ToolRouterKey {
         result
     }
 
-    pub fn serialize_tool_router_keys<S>(tools: &Vec<ToolRouterKey>, serializer: S) -> Result<S::Ok, S::Error>
+    pub fn serialize_tool_router_keys<S>(
+        tools: &Vec<ToolRouterKey>,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
     {
@@ -71,7 +74,10 @@ impl ToolRouterKey {
         strings.serialize(serializer)
     }
 
-    pub fn serialize_tool_router_key<S>(tool: &Option<ToolRouterKey>, serializer: S) -> Result<S::Ok, S::Error>
+    pub fn serialize_tool_router_key<S>(
+        tool: &Option<ToolRouterKey>,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
     {
@@ -82,7 +88,9 @@ impl ToolRouterKey {
         }
     }
 
-    pub fn deserialize_tool_router_key<'de, D>(deserializer: D) -> Result<Option<ToolRouterKey>, D::Error>
+    pub fn deserialize_tool_router_key<'de, D>(
+        deserializer: D,
+    ) -> Result<Option<ToolRouterKey>, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
@@ -104,7 +112,13 @@ impl ToolRouterKey {
     pub fn sanitize(input: &str) -> String {
         input
             .chars()
-            .map(|c| if c.is_ascii_alphanumeric() || c == '_' { c } else { '_' })
+            .map(|c| {
+                if c.is_ascii_alphanumeric() || c == '_' {
+                    c
+                } else {
+                    '_'
+                }
+            })
             .collect()
     }
 
@@ -113,7 +127,10 @@ impl ToolRouterKey {
         let sanitized_author = Self::sanitize(&self.author);
         let sanitized_name = Self::sanitize(&self.name);
 
-        let key = format!("{}:::{}:::{}", sanitized_source, sanitized_author, sanitized_name);
+        let key = format!(
+            "{}:::{}:::{}",
+            sanitized_source, sanitized_author, sanitized_name
+        );
         key.replace('/', "|").to_lowercase()
     }
 
@@ -182,8 +199,8 @@ impl ToolRouterKey {
         let key = Self::from_string(key_str)?;
 
         // Create a HanzoName to properly validate the node name
-        let hanzo_name =
-            HanzoName::new(node_name.to_string()).map_err(|e| format!("Invalid node name '{}': {}", node_name, e))?;
+        let hanzo_name = HanzoName::new(node_name.to_string())
+            .map_err(|e| format!("Invalid node name '{}': {}", node_name, e))?;
 
         // Sanitize the node name to create the network source
         let network_source = Self::sanitize(&hanzo_name.node_name);
@@ -290,7 +307,10 @@ mod tests {
         );
         let key_string = key.to_string_without_version();
         eprintln!("key_string: {:?}", key_string);
-        assert!(!key_string.contains(' '), "Key string should not contain spaces");
+        assert!(
+            !key_string.contains(' '),
+            "Key string should not contain spaces"
+        );
         assert_eq!(key_string, "local:::__system_hanzo:::versioned_tool");
     }
 
@@ -313,7 +333,10 @@ mod tests {
         let original_key = "local:::guillevalin:::echo_function";
         let node_name = "@@guillevalin.sep-hanzo";
         let network_key = ToolRouterKey::to_network_router_key(original_key, node_name).unwrap();
-        assert_eq!(network_key, "__guillevalin_sep_hanzo:::guillevalin:::echo_function");
+        assert_eq!(
+            network_key,
+            "__guillevalin_sep_hanzo:::guillevalin:::echo_function"
+        );
     }
 
     #[test]

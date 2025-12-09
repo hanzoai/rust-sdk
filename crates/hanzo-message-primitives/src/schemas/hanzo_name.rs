@@ -1,5 +1,5 @@
 use crate::{
-    hanzo_message::hanzo_message::{MessageBody, HanzoMessage},
+    hanzo_message::hanzo_message::{HanzoMessage, MessageBody},
     hanzo_utils::hanzo_logging::{hanzo_log, HanzoLogLevel, HanzoLogOption},
 };
 use regex::Regex;
@@ -49,7 +49,8 @@ impl fmt::Display for HanzoSubidentityType {
 
 impl HanzoName {
     // Define a list of valid endings
-    const VALID_ENDINGS: [&'static str; 4] = [".hanzo", ".sepolia-hanzo", ".arb-sep-hanzo", ".sep-hanzo"];
+    const VALID_ENDINGS: [&'static str; 4] =
+        [".hanzo", ".sepolia-hanzo", ".arb-sep-hanzo", ".sep-hanzo"];
 
     pub fn new(raw_name: String) -> Result<Self, &'static str> {
         let raw_name = Self::correct_node_name(raw_name);
@@ -112,7 +113,11 @@ impl HanzoName {
             return Err("Name should have one to four parts: node, profile, type (device or agent), and name.");
         }
 
-        if !parts[0].starts_with("@@") || !Self::VALID_ENDINGS.iter().any(|&ending| parts[0].ends_with(ending)) {
+        if !parts[0].starts_with("@@")
+            || !Self::VALID_ENDINGS
+                .iter()
+                .any(|&ending| parts[0].ends_with(ending))
+        {
             hanzo_log(
                 HanzoLogOption::Identity,
                 HanzoLogLevel::Info,
@@ -121,12 +126,16 @@ impl HanzoName {
             return Err("Node part of the name should start with '@@' and end with a valid ending ('.hanzo', '.arb-sep-hanzo', '.sep-hanzo', etc.).");
         }
 
-        let node_name_regex = r"^@@[a-zA-Z0-9\_\.]+(\.hanzo|\.arb-sep-hanzo|\.sepolia-hanzo|\.sep-hanzo)$";
+        let node_name_regex =
+            r"^@@[a-zA-Z0-9\_\.]+(\.hanzo|\.arb-sep-hanzo|\.sepolia-hanzo|\.sep-hanzo)$";
         if !Regex::new(node_name_regex).unwrap().is_match(parts[0]) {
             hanzo_log(
                 HanzoLogOption::Identity,
                 HanzoLogLevel::Info,
-                &format!("Node part of the name contains invalid characters: {}", raw_name),
+                &format!(
+                    "Node part of the name contains invalid characters: {}",
+                    raw_name
+                ),
             );
             return Err("Node part of the name contains invalid characters.");
         }
@@ -153,7 +162,10 @@ impl HanzoName {
                 hanzo_log(
                     HanzoLogOption::Identity,
                     HanzoLogLevel::Info,
-                    &format!("The third part should either be 'agent' or 'device': {}", raw_name),
+                    &format!(
+                        "The third part should either be 'agent' or 'device': {}",
+                        raw_name
+                    ),
                 );
                 return Err("The third part should either be 'agent' or 'device'.");
             }
@@ -179,7 +191,9 @@ impl HanzoName {
                         raw_name
                     ),
                 );
-                return Err("Name parts should be alphanumeric or underscore and not contain '.hanzo'.");
+                return Err(
+                    "Name parts should be alphanumeric or underscore and not contain '.hanzo'.",
+                );
             }
         }
 
@@ -215,12 +229,19 @@ impl HanzoName {
         }
     }
 
-    pub fn from_node_and_profile_names(node_name: String, profile_name: String) -> Result<Self, &'static str> {
+    pub fn from_node_and_profile_names(
+        node_name: String,
+        profile_name: String,
+    ) -> Result<Self, &'static str> {
         // Validate and format the node_name
         let node_name = Self::correct_node_name(node_name);
 
         // Construct the full_identity_name
-        let full_identity_name = format!("{}/{}", node_name.to_lowercase(), profile_name.to_lowercase());
+        let full_identity_name = format!(
+            "{}/{}",
+            node_name.to_lowercase(),
+            profile_name.to_lowercase()
+        );
 
         // Create a new HanzoName
         Self::new(full_identity_name)
@@ -252,7 +273,9 @@ impl HanzoName {
     }
 
     #[allow(dead_code)]
-    pub fn from_hanzo_message_using_sender_and_intra_sender(message: &HanzoMessage) -> Result<Self, &'static str> {
+    pub fn from_hanzo_message_using_sender_and_intra_sender(
+        message: &HanzoMessage,
+    ) -> Result<Self, &'static str> {
         let name = format!(
             "{}/{}",
             message.external_metadata.sender.clone(),
@@ -262,17 +285,23 @@ impl HanzoName {
     }
 
     #[allow(dead_code)]
-    pub fn from_hanzo_message_only_using_sender_node_name(message: &HanzoMessage) -> Result<Self, &'static str> {
+    pub fn from_hanzo_message_only_using_sender_node_name(
+        message: &HanzoMessage,
+    ) -> Result<Self, &'static str> {
         Self::new(message.external_metadata.sender.clone())
     }
 
     #[allow(dead_code)]
-    pub fn from_hanzo_message_only_using_recipient_node_name(message: &HanzoMessage) -> Result<Self, &'static str> {
+    pub fn from_hanzo_message_only_using_recipient_node_name(
+        message: &HanzoMessage,
+    ) -> Result<Self, &'static str> {
         Self::new(message.external_metadata.recipient.clone())
     }
 
     #[allow(dead_code)]
-    pub fn from_hanzo_message_using_sender_subidentity(message: &HanzoMessage) -> Result<Self, HanzoNameError> {
+    pub fn from_hanzo_message_using_sender_subidentity(
+        message: &HanzoMessage,
+    ) -> Result<Self, HanzoNameError> {
         // Check if outer encrypted and return error if so
         let body = match &message.body {
             MessageBody::Unencrypted(body) => body,
@@ -346,7 +375,9 @@ impl HanzoName {
         // A node name is valid if it starts with '@@', ends with a valid ending, and doesn't contain '/'
         name.starts_with("@@")
             && !name.contains('/')
-            && Self::VALID_ENDINGS.iter().any(|&ending| name.ends_with(ending))
+            && Self::VALID_ENDINGS
+                .iter()
+                .any(|&ending| name.ends_with(ending))
     }
 
     pub fn contains(&self, other: &HanzoName) -> bool {
@@ -457,7 +488,10 @@ impl HanzoName {
         }
 
         // Check if the node_name ends with any of the valid endings, append ".hanzo" if not
-        if !Self::VALID_ENDINGS.iter().any(|&ending| node_name.ends_with(ending)) {
+        if !Self::VALID_ENDINGS
+            .iter()
+            .any(|&ending| node_name.ends_with(ending))
+        {
             node_name = format!("{}.hanzo", node_name);
         }
 
@@ -524,9 +558,15 @@ impl Hash for HanzoName {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.full_name.to_lowercase().hash(state);
         self.node_name.to_lowercase().hash(state);
-        self.profile_name.as_ref().map(|s| s.to_lowercase()).hash(state);
+        self.profile_name
+            .as_ref()
+            .map(|s| s.to_lowercase())
+            .hash(state);
         self.subidentity_type.hash(state);
-        self.subidentity_name.as_ref().map(|s| s.to_lowercase()).hash(state);
+        self.subidentity_name
+            .as_ref()
+            .map(|s| s.to_lowercase())
+            .hash(state);
     }
 }
 

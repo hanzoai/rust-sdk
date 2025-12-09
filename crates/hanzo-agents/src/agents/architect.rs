@@ -2,7 +2,9 @@
 
 use crate::prompts::ARCHITECT_PROMPT;
 use crate::tools::ToolRegistry;
-use crate::traits::{AgentConfig, AgentError, AgentOutput, Result, SpecializedAgent, ToolDefinition, ToolCall, Usage};
+use crate::traits::{
+    AgentConfig, AgentError, AgentOutput, Result, SpecializedAgent, ToolCall, ToolDefinition, Usage,
+};
 use async_trait::async_trait;
 use std::sync::Arc;
 
@@ -40,8 +42,8 @@ impl SpecializedAgent for ArchitectAgent {
     fn tools(&self) -> Vec<ToolDefinition> {
         // Architect typically needs: file reading, search, documentation tools
         vec![
-            ToolDefinition::new("read_file", "Read contents of a file")
-                .with_parameters(serde_json::json!({
+            ToolDefinition::new("read_file", "Read contents of a file").with_parameters(
+                serde_json::json!({
                     "type": "object",
                     "properties": {
                         "path": {
@@ -50,7 +52,8 @@ impl SpecializedAgent for ArchitectAgent {
                         }
                     },
                     "required": ["path"]
-                })),
+                }),
+            ),
             ToolDefinition::new("search_code", "Search for patterns in the codebase")
                 .with_parameters(serde_json::json!({
                     "type": "object",
@@ -66,8 +69,8 @@ impl SpecializedAgent for ArchitectAgent {
                     },
                     "required": ["pattern"]
                 })),
-            ToolDefinition::new("list_directory", "List files in a directory")
-                .with_parameters(serde_json::json!({
+            ToolDefinition::new("list_directory", "List files in a directory").with_parameters(
+                serde_json::json!({
                     "type": "object",
                     "properties": {
                         "path": {
@@ -80,7 +83,8 @@ impl SpecializedAgent for ArchitectAgent {
                         }
                     },
                     "required": ["path"]
-                })),
+                }),
+            ),
         ]
     }
 
@@ -117,7 +121,9 @@ impl SpecializedAgent for ArchitectAgent {
         _input: &str,
         _config: &AgentConfig,
     ) -> Result<Box<dyn futures::Stream<Item = Result<String>> + Send + Unpin>> {
-        Err(AgentError::Other("Streaming not yet implemented".to_string()))
+        Err(AgentError::Other(
+            "Streaming not yet implemented".to_string(),
+        ))
     }
 }
 

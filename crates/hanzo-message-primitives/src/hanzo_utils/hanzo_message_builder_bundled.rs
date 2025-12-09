@@ -1,31 +1,34 @@
-use crate::{schemas::hanzo_name::HanzoName, hanzo_message::hanzo_message_schemas::MessageMetadata};
+use crate::{
+    hanzo_message::hanzo_message_schemas::MessageMetadata, schemas::hanzo_name::HanzoName,
+};
 use ed25519_dalek::SigningKey;
 use serde::Serialize;
 use x25519_dalek::{PublicKey as EncryptionPublicKey, StaticSecret as EncryptionStaticKey};
 
 use crate::{
-    schemas::{
-        inbox_name::InboxName, llm_providers::serialized_llm_provider::SerializedLLMProvider,
-        registration_code::RegistrationCodeSimple,
-    },
     hanzo_message::{
         hanzo_message::HanzoMessage,
         hanzo_message_schemas::{
-            APIAddAgentRequest, APIGetMessagesFromInboxRequest, APIReadUpToTimeRequest, IdentityPermissions,
-            JobCreationInfo, JobMessage, MessageSchemaType, RegistrationCodeRequest, RegistrationCodeType,
+            APIAddAgentRequest, APIGetMessagesFromInboxRequest, APIReadUpToTimeRequest,
+            IdentityPermissions, JobCreationInfo, JobMessage, MessageSchemaType,
+            RegistrationCodeRequest, RegistrationCodeType,
         },
     },
     hanzo_utils::{
         encryption::{encryption_public_key_to_string, EncryptionMethod},
         signatures::signature_public_key_to_string,
     },
+    schemas::{
+        inbox_name::InboxName, llm_providers::serialized_llm_provider::SerializedLLMProvider,
+        registration_code::RegistrationCodeSimple,
+    },
 };
 
 use super::{
     encryption::unsafe_deterministic_encryption_keypair,
-    job_scope::MinimalJobScope,
     hanzo_message_builder::{HanzoMessageBuilder, HanzoNameString},
     hanzo_path::HanzoPath,
+    job_scope::MinimalJobScope,
 };
 
 impl HanzoMessageBuilder {
@@ -38,13 +41,18 @@ impl HanzoMessageBuilder {
         receiver: HanzoNameString,
     ) -> Result<HanzoMessage, &'static str> {
         let my_encryption_public_key = x25519_dalek::PublicKey::from(&my_encryption_secret_key);
-        let my_encryption_public_key_string = encryption_public_key_to_string(my_encryption_public_key);
-        HanzoMessageBuilder::new(my_encryption_secret_key, my_signature_secret_key, receiver_public_key)
-            .message_raw_content("ACK".to_string())
-            .empty_non_encrypted_internal_metadata()
-            .no_body_encryption()
-            .external_metadata_with_other(receiver, sender, my_encryption_public_key_string)
-            .build()
+        let my_encryption_public_key_string =
+            encryption_public_key_to_string(my_encryption_public_key);
+        HanzoMessageBuilder::new(
+            my_encryption_secret_key,
+            my_signature_secret_key,
+            receiver_public_key,
+        )
+        .message_raw_content("ACK".to_string())
+        .empty_non_encrypted_internal_metadata()
+        .no_body_encryption()
+        .external_metadata_with_other(receiver, sender, my_encryption_public_key_string)
+        .build()
     }
 
     #[allow(dead_code)]
@@ -59,12 +67,16 @@ impl HanzoMessageBuilder {
         if message != "Ping" && message != "Pong" {
             return Err("Invalid message: must be 'Ping' or 'Pong'");
         }
-        HanzoMessageBuilder::new(my_encryption_secret_key, my_signature_secret_key, receiver_public_key)
-            .message_raw_content(message)
-            .empty_non_encrypted_internal_metadata()
-            .no_body_encryption()
-            .external_metadata(receiver, sender)
-            .build()
+        HanzoMessageBuilder::new(
+            my_encryption_secret_key,
+            my_signature_secret_key,
+            receiver_public_key,
+        )
+        .message_raw_content(message)
+        .empty_non_encrypted_internal_metadata()
+        .no_body_encryption()
+        .external_metadata(receiver, sender)
+        .build()
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -80,19 +92,23 @@ impl HanzoMessageBuilder {
         node_receiver_subidentity: HanzoNameString,
     ) -> Result<HanzoMessage, &'static str> {
         let new_name = HanzoName::new(new_name).map_err(|_| "Failed to create new name")?;
-        HanzoMessageBuilder::new(my_encryption_secret_key, my_signature_secret_key, receiver_public_key)
-            .message_raw_content(new_name.node_name)
-            .internal_metadata_with_schema(
-                sender_subidentity.to_string(),
-                node_receiver_subidentity.clone(),
-                "".to_string(),
-                MessageSchemaType::ChangeNodesName,
-                EncryptionMethod::None,
-                None,
-            )
-            .body_encryption(EncryptionMethod::DiffieHellmanChaChaPoly1305)
-            .external_metadata_with_intra_sender(node_receiver, node_sender, sender_subidentity)
-            .build()
+        HanzoMessageBuilder::new(
+            my_encryption_secret_key,
+            my_signature_secret_key,
+            receiver_public_key,
+        )
+        .message_raw_content(new_name.node_name)
+        .internal_metadata_with_schema(
+            sender_subidentity.to_string(),
+            node_receiver_subidentity.clone(),
+            "".to_string(),
+            MessageSchemaType::ChangeNodesName,
+            EncryptionMethod::None,
+            None,
+        )
+        .body_encryption(EncryptionMethod::DiffieHellmanChaChaPoly1305)
+        .external_metadata_with_intra_sender(node_receiver, node_sender, sender_subidentity)
+        .build()
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -113,21 +129,26 @@ impl HanzoMessageBuilder {
             is_hidden: Some(is_hidden),
             associated_ui: None,
         };
-        let body = serde_json::to_string(&job_creation).map_err(|_| "Failed to serialize job creation to JSON")?;
+        let body = serde_json::to_string(&job_creation)
+            .map_err(|_| "Failed to serialize job creation to JSON")?;
 
-        HanzoMessageBuilder::new(my_encryption_secret_key, my_signature_secret_key, receiver_public_key)
-            .message_raw_content(body)
-            .internal_metadata_with_schema(
-                sender_subidentity.to_string(),
-                node_receiver_subidentity.clone(),
-                "".to_string(),
-                MessageSchemaType::JobCreationSchema,
-                EncryptionMethod::None,
-                None,
-            )
-            .body_encryption(EncryptionMethod::DiffieHellmanChaChaPoly1305)
-            .external_metadata_with_intra_sender(node_receiver, sender, sender_subidentity)
-            .build()
+        HanzoMessageBuilder::new(
+            my_encryption_secret_key,
+            my_signature_secret_key,
+            receiver_public_key,
+        )
+        .message_raw_content(body)
+        .internal_metadata_with_schema(
+            sender_subidentity.to_string(),
+            node_receiver_subidentity.clone(),
+            "".to_string(),
+            MessageSchemaType::JobCreationSchema,
+            EncryptionMethod::None,
+            None,
+        )
+        .body_encryption(EncryptionMethod::DiffieHellmanChaChaPoly1305)
+        .external_metadata_with_intra_sender(node_receiver, sender, sender_subidentity)
+        .build()
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -159,25 +180,30 @@ impl HanzoMessageBuilder {
             job_filenames: vec![],
             tools: None,
         };
-        let body = serde_json::to_string(&job_message).map_err(|_| "Failed to serialize job message to JSON")?;
+        let body = serde_json::to_string(&job_message)
+            .map_err(|_| "Failed to serialize job message to JSON")?;
 
         let inbox = InboxName::get_job_inbox_name_from_params(job_id_clone)
             .map_err(|_| "Failed to get job inbox name")?
             .to_string();
 
-        HanzoMessageBuilder::new(my_encryption_secret_key, my_signature_secret_key, receiver_public_key)
-            .message_raw_content(body)
-            .internal_metadata_with_schema(
-                sender_subidentity.to_string(),
-                node_receiver_subidentity.clone(),
-                inbox,
-                MessageSchemaType::JobMessageSchema,
-                EncryptionMethod::None,
-                None,
-            )
-            .body_encryption(EncryptionMethod::DiffieHellmanChaChaPoly1305)
-            .external_metadata_with_intra_sender(node_receiver, node_sender, sender_subidentity)
-            .build()
+        HanzoMessageBuilder::new(
+            my_encryption_secret_key,
+            my_signature_secret_key,
+            receiver_public_key,
+        )
+        .message_raw_content(body)
+        .internal_metadata_with_schema(
+            sender_subidentity.to_string(),
+            node_receiver_subidentity.clone(),
+            inbox,
+            MessageSchemaType::JobMessageSchema,
+            EncryptionMethod::None,
+            None,
+        )
+        .body_encryption(EncryptionMethod::DiffieHellmanChaChaPoly1305)
+        .external_metadata_with_intra_sender(node_receiver, node_sender, sender_subidentity)
+        .build()
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -207,13 +233,15 @@ impl HanzoMessageBuilder {
             job_filenames: vec![],
             tools: None,
         };
-        let body = serde_json::to_string(&job_message).map_err(|_| "Failed to serialize job message to JSON")?;
+        let body = serde_json::to_string(&job_message)
+            .map_err(|_| "Failed to serialize job message to JSON")?;
 
         let inbox = InboxName::get_job_inbox_name_from_params(job_id_clone)
             .map_err(|_| "Failed to get job inbox name")?
             .to_string();
 
-        let (placeholder_encryption_sk, placeholder_encryption_pk) = unsafe_deterministic_encryption_keypair(0);
+        let (placeholder_encryption_sk, placeholder_encryption_pk) =
+            unsafe_deterministic_encryption_keypair(0);
 
         HanzoMessageBuilder::new(
             placeholder_encryption_sk,
@@ -259,14 +287,16 @@ impl HanzoMessageBuilder {
             job_filenames: vec![],
             tools: None,
         };
-        let body = serde_json::to_string(&job_message).map_err(|_| "Failed to serialize job message to JSON")?;
+        let body = serde_json::to_string(&job_message)
+            .map_err(|_| "Failed to serialize job message to JSON")?;
 
         let inbox = InboxName::get_job_inbox_name_from_params(job_id_clone)
             .map_err(|_| "Failed to get job inbox name")?
             .to_string();
 
         // Use for placeholder. These messages *are not* encrypted so it's not required
-        let (placeholder_encryption_sk, placeholder_encryption_pk) = unsafe_deterministic_encryption_keypair(0);
+        let (placeholder_encryption_sk, placeholder_encryption_pk) =
+            unsafe_deterministic_encryption_keypair(0);
 
         HanzoMessageBuilder::new(
             placeholder_encryption_sk,
@@ -295,12 +325,16 @@ impl HanzoMessageBuilder {
         sender: HanzoNameString,
         receiver: HanzoNameString,
     ) -> Result<HanzoMessage, &'static str> {
-        HanzoMessageBuilder::new(my_encryption_secret_key, my_signature_secret_key, receiver_public_key)
-            .message_raw_content("terminate".to_string())
-            .empty_non_encrypted_internal_metadata()
-            .no_body_encryption()
-            .external_metadata(receiver, sender)
-            .build()
+        HanzoMessageBuilder::new(
+            my_encryption_secret_key,
+            my_signature_secret_key,
+            receiver_public_key,
+        )
+        .message_raw_content("terminate".to_string())
+        .empty_non_encrypted_internal_metadata()
+        .no_body_encryption()
+        .external_metadata(receiver, sender)
+        .build()
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -315,7 +349,10 @@ impl HanzoMessageBuilder {
         sender: HanzoNameString,
         receiver: HanzoNameString,
     ) -> Result<HanzoMessage, &'static str> {
-        let registration_code_request = RegistrationCodeRequest { permissions, code_type };
+        let registration_code_request = RegistrationCodeRequest {
+            permissions,
+            code_type,
+        };
 
         HanzoMessageBuilder::create_custom_hanzo_message_to_node(
             my_subidentity_encryption_sk,
@@ -446,21 +483,26 @@ impl HanzoMessageBuilder {
             permission_type,
         };
 
-        let body = serde_json::to_string(&registration_code).map_err(|_| "Failed to serialize data to JSON")?;
+        let body = serde_json::to_string(&registration_code)
+            .map_err(|_| "Failed to serialize data to JSON")?;
 
-        HanzoMessageBuilder::new(my_device_encryption_sk, my_device_signature_sk, my_device_encryption_pk)
-            .message_raw_content(body)
-            .body_encryption(EncryptionMethod::None)
-            .internal_metadata_with_schema(
-                sender_subidentity,
-                "".to_string(),
-                "".to_string(),
-                MessageSchemaType::UseRegistrationCode,
-                EncryptionMethod::None,
-                None,
-            )
-            .external_metadata_with_other(receiver.clone(), sender, other)
-            .build()
+        HanzoMessageBuilder::new(
+            my_device_encryption_sk,
+            my_device_signature_sk,
+            my_device_encryption_pk,
+        )
+        .message_raw_content(body)
+        .body_encryption(EncryptionMethod::None)
+        .internal_metadata_with_schema(
+            sender_subidentity,
+            "".to_string(),
+            "".to_string(),
+            MessageSchemaType::UseRegistrationCode,
+            EncryptionMethod::None,
+            None,
+        )
+        .external_metadata_with_other(receiver.clone(), sender, other)
+        .build()
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -568,7 +610,9 @@ impl HanzoMessageBuilder {
         sender: HanzoNameString,
         receiver: HanzoNameString,
     ) -> Result<HanzoMessage, &'static str> {
-        let add_llm_provider = APIAddAgentRequest { agent: llm_provider };
+        let add_llm_provider = APIAddAgentRequest {
+            agent: llm_provider,
+        };
 
         HanzoMessageBuilder::create_custom_hanzo_message_to_node(
             my_subidentity_encryption_sk,
@@ -595,7 +639,10 @@ impl HanzoMessageBuilder {
         receiver: HanzoNameString,
     ) -> Result<HanzoMessage, &'static str> {
         let inbox_name = InboxName::new(inbox).map_err(|_| "Failed to create inbox name")?;
-        let read_up_to_time = APIReadUpToTimeRequest { inbox_name, up_to_time };
+        let read_up_to_time = APIReadUpToTimeRequest {
+            inbox_name,
+            up_to_time,
+        };
 
         HanzoMessageBuilder::create_custom_hanzo_message_to_node(
             my_subidentity_encryption_sk,
@@ -622,7 +669,8 @@ impl HanzoMessageBuilder {
         schema: MessageSchemaType,
     ) -> Result<HanzoMessage, &'static str> {
         let body = serde_json::to_string(&data).map_err(|_| "Failed to serialize data to JSON")?;
-        let my_subidentity_encryption_pk = x25519_dalek::PublicKey::from(&my_subidentity_encryption_sk);
+        let my_subidentity_encryption_pk =
+            x25519_dalek::PublicKey::from(&my_subidentity_encryption_sk);
         let other = encryption_public_key_to_string(my_subidentity_encryption_pk);
 
         HanzoMessageBuilder::new(
@@ -654,11 +702,15 @@ impl HanzoMessageBuilder {
         receiver: HanzoNameString,
         error_msg: String,
     ) -> Result<HanzoMessage, &'static str> {
-        HanzoMessageBuilder::new(my_encryption_secret_key, my_signature_secret_key, receiver_public_key)
-            .message_raw_content(format!("{{error: \"{}\"}}", error_msg))
-            .empty_encrypted_internal_metadata()
-            .external_metadata(receiver, sender)
-            .no_body_encryption()
-            .build()
+        HanzoMessageBuilder::new(
+            my_encryption_secret_key,
+            my_signature_secret_key,
+            receiver_public_key,
+        )
+        .message_raw_content(format!("{{error: \"{}\"}}", error_msg))
+        .empty_encrypted_internal_metadata()
+        .external_metadata(receiver, sender)
+        .no_body_encryption()
+        .build()
     }
 }

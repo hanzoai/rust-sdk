@@ -82,8 +82,8 @@ impl Tool for FunctionTool {
     }
 
     async fn invoke(&self, ctx: &RunContext, args: &str) -> Result<String> {
-        let value: Value = serde_json::from_str(args)
-            .map_err(|e| AgentError::InvalidJson(e.to_string()))?;
+        let value: Value =
+            serde_json::from_str(args).map_err(|e| AgentError::InvalidJson(e.to_string()))?;
         (self.handler)(ctx, value)
     }
 }

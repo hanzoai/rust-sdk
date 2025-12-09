@@ -1,6 +1,5 @@
 mod tests {
 
-    use serde_json;
     use hanzo_message_primitives::hanzo_message::hanzo_message::HanzoMessage;
     use hanzo_message_primitives::hanzo_message::hanzo_message_schemas::JobMessage;
     use hanzo_message_primitives::hanzo_message::hanzo_message_schemas::MessageSchemaType;
@@ -10,12 +9,15 @@ mod tests {
     use hanzo_message_primitives::hanzo_utils::hanzo_path::HanzoPath;
     use hanzo_message_primitives::hanzo_utils::signatures::clone_signature_secret_key;
     use hanzo_message_primitives::hanzo_utils::signatures::unsafe_deterministic_signature_keypair;
+    use serde_json;
 
     #[test]
     fn test_encode_decode_message() {
         // Initialize the message
-        let (my_encryption_secret_key, my_encryption_public_key) = unsafe_deterministic_encryption_keypair(0);
-        let (my_signature_secret_key, _my_signature_public_key) = unsafe_deterministic_signature_keypair(0);
+        let (my_encryption_secret_key, my_encryption_public_key) =
+            unsafe_deterministic_encryption_keypair(0);
+        let (my_signature_secret_key, _my_signature_public_key) =
+            unsafe_deterministic_signature_keypair(0);
         let receiver_public_key = my_encryption_public_key.clone();
 
         let message = HanzoMessageBuilder::new(
@@ -57,8 +59,10 @@ mod tests {
     #[test]
     fn test_serde_encode_decode_message() {
         // Initialize the message
-        let (my_encryption_secret_key, my_encryption_public_key) = unsafe_deterministic_encryption_keypair(0);
-        let (my_signature_secret_key, my_signature_public_key) = unsafe_deterministic_signature_keypair(0);
+        let (my_encryption_secret_key, my_encryption_public_key) =
+            unsafe_deterministic_encryption_keypair(0);
+        let (my_signature_secret_key, my_signature_public_key) =
+            unsafe_deterministic_signature_keypair(0);
         let receiver_public_key = my_encryption_public_key.clone();
 
         let message = HanzoMessageBuilder::new(
@@ -100,8 +104,10 @@ mod tests {
     #[test]
     fn test_serde_encode_decode_message_with_decode_message_result() {
         // Initialize the message
-        let (my_encryption_secret_key, my_encryption_public_key) = unsafe_deterministic_encryption_keypair(0);
-        let (my_signature_secret_key, _my_signature_public_key) = unsafe_deterministic_signature_keypair(0);
+        let (my_encryption_secret_key, my_encryption_public_key) =
+            unsafe_deterministic_encryption_keypair(0);
+        let (my_signature_secret_key, _my_signature_public_key) =
+            unsafe_deterministic_signature_keypair(0);
         let receiver_public_key = my_encryption_public_key.clone();
 
         let message = HanzoMessageBuilder::new(
@@ -134,7 +140,8 @@ mod tests {
         let serialized_message_bytes = serialized_message.into_bytes();
 
         // Deserialize the JSON string back to a HanzoMessage using decode_message_result
-        let deserialized_message = HanzoMessage::decode_message_result(serialized_message_bytes).unwrap();
+        let deserialized_message =
+            HanzoMessage::decode_message_result(serialized_message_bytes).unwrap();
 
         // Check if the original and deserialized messages are the same
         assert_eq!(
@@ -161,10 +168,12 @@ mod tests {
         };
 
         // Serialize the JobMessage to a JSON string
-        let serialized = serde_json::to_string(&job_message).expect("Failed to serialize JobMessage");
+        let serialized =
+            serde_json::to_string(&job_message).expect("Failed to serialize JobMessage");
 
         // Deserialize the JSON string back to a JobMessage
-        let deserialized: JobMessage = serde_json::from_str(&serialized).expect("Failed to deserialize JobMessage");
+        let deserialized: JobMessage =
+            serde_json::from_str(&serialized).expect("Failed to deserialize JobMessage");
 
         // Assert that the original and deserialized JobMessages are the same
         assert_eq!(job_message, deserialized);
@@ -188,10 +197,12 @@ mod tests {
         };
 
         // Serialize the JobMessage to a JSON string
-        let serialized = serde_json::to_string(&job_message).expect("Failed to serialize JobMessage");
+        let serialized =
+            serde_json::to_string(&job_message).expect("Failed to serialize JobMessage");
 
         // Deserialize the JSON string back to a JobMessage
-        let deserialized: JobMessage = serde_json::from_str(&serialized).expect("Failed to deserialize JobMessage");
+        let deserialized: JobMessage =
+            serde_json::from_str(&serialized).expect("Failed to deserialize JobMessage");
 
         // Assert that the original and deserialized JobMessages are the same
         assert_eq!(job_message, deserialized);

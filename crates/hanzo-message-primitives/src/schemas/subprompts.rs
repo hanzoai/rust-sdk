@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 use std::fmt;
 
-use super::{llm_message::LlmMessage, prompts::Prompt, hanzo_fs::HanzoFileChunk};
+use super::{hanzo_fs::HanzoFileChunk, llm_message::LlmMessage, prompts::Prompt};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum SubPromptType {
@@ -60,7 +60,11 @@ pub enum SubPrompt {
     Omni(
         SubPromptType,
         String,
-        Vec<(SubPromptAssetType, SubPromptAssetContent, SubPromptAssetDetail)>,
+        Vec<(
+            SubPromptAssetType,
+            SubPromptAssetContent,
+            SubPromptAssetDetail,
+        )>,
         PriorityValue,
     ),
 }
@@ -88,7 +92,10 @@ impl SubPrompt {
         match self {
             SubPrompt::Content(_, content, _) => content.clone(),
             SubPrompt::Asset(_, asset_type, _asset_content, asset_detail, _) => {
-                format!("Asset Type: {:?}, Content: ..., Detail: {:?}", asset_type, asset_detail)
+                format!(
+                    "Asset Type: {:?}, Content: ..., Detail: {:?}",
+                    asset_type, asset_detail
+                )
             }
             SubPrompt::ToolAvailable(_, content, _) => content.to_string(),
             SubPrompt::FunctionCall(_, content, _) => content.to_string(),
@@ -109,7 +116,9 @@ impl SubPrompt {
     /// Extracts generic subprompt data, returning a tuple of the prompt type, content, and content type.
     pub fn extract_generic_subprompt_data(&self) -> (SubPromptType, String, &'static str) {
         match self {
-            SubPrompt::Content(prompt_type, _, _) => (prompt_type.clone(), self.generate_output_string(), "text"),
+            SubPrompt::Content(prompt_type, _, _) => {
+                (prompt_type.clone(), self.generate_output_string(), "text")
+            }
             SubPrompt::Asset(prompt_type, asset_type, asset_content, _, _) => {
                 let content_type = match asset_type {
                     SubPromptAssetType::Image => "image",
@@ -118,12 +127,18 @@ impl SubPrompt {
                 };
                 (prompt_type.clone(), asset_content.clone(), content_type)
             }
-            SubPrompt::ToolAvailable(prompt_type, _, _) => (prompt_type.clone(), self.generate_output_string(), "text"),
-            SubPrompt::FunctionCall(prompt_type, _, _) => (prompt_type.clone(), self.generate_output_string(), "text"),
+            SubPrompt::ToolAvailable(prompt_type, _, _) => {
+                (prompt_type.clone(), self.generate_output_string(), "text")
+            }
+            SubPrompt::FunctionCall(prompt_type, _, _) => {
+                (prompt_type.clone(), self.generate_output_string(), "text")
+            }
             SubPrompt::FunctionCallResponse(prompt_type, _, _) => {
                 (prompt_type.clone(), self.generate_output_string(), "text")
             }
-            SubPrompt::Omni(prompt_type, _, _, _) => (prompt_type.clone(), self.generate_output_string(), "omni"),
+            SubPrompt::Omni(prompt_type, _, _, _) => {
+                (prompt_type.clone(), self.generate_output_string(), "omni")
+            }
         }
     }
     /// Gets the content of the SubPrompt (aka. updates it to the provided string)
@@ -143,9 +158,15 @@ impl SubPrompt {
         match self {
             SubPrompt::Content(_, content, _) => *content = new_content,
             SubPrompt::Asset(_, _, asset_content, _, _) => *asset_content = new_content,
-            SubPrompt::ToolAvailable(_, content, _) => *content = serde_json::Value::String(new_content),
-            SubPrompt::FunctionCall(_, content, _) => *content = serde_json::Value::String(new_content),
-            SubPrompt::FunctionCallResponse(_, content, _) => *content = serde_json::Value::String(new_content),
+            SubPrompt::ToolAvailable(_, content, _) => {
+                *content = serde_json::Value::String(new_content)
+            }
+            SubPrompt::FunctionCall(_, content, _) => {
+                *content = serde_json::Value::String(new_content)
+            }
+            SubPrompt::FunctionCallResponse(_, content, _) => {
+                *content = serde_json::Value::String(new_content)
+            }
             SubPrompt::Omni(_, content, _, _) => *content = new_content, /* Note: shouldn't this account for the
                                                                           * assets as well? */
         }
@@ -179,9 +200,21 @@ impl SubPrompt {
                     name: None,
                     function_call: None,
                     functions: None,
-                    images: if images.is_empty() { None } else { Some(images) },
-                    videos: if videos.is_empty() { None } else { Some(videos) },
-                    audios: if audios.is_empty() { None } else { Some(audios) },
+                    images: if images.is_empty() {
+                        None
+                    } else {
+                        Some(images)
+                    },
+                    videos: if videos.is_empty() {
+                        None
+                    } else {
+                        Some(videos)
+                    },
+                    audios: if audios.is_empty() {
+                        None
+                    } else {
+                        Some(audios)
+                    },
                     tool_calls: None,
                 }
             }
@@ -190,7 +223,11 @@ impl SubPrompt {
                 LlmMessage {
                     role: Some(prompt_type.to_string()),
                     content: Some(content),
-                    name: if type_ == "text" { None } else { Some(type_.to_string()) },
+                    name: if type_ == "text" {
+                        None
+                    } else {
+                        Some(type_.to_string())
+                    },
                     function_call: None,
                     functions: None,
                     images: None,
@@ -343,7 +380,11 @@ impl SubPrompt {
 
             if extra_info != last_reference {
                 if !buffer_content.is_empty() {
-                    temp_prompt.add_content(buffer_content.clone(), SubPromptType::ExtraContext, subprompt_priority);
+                    temp_prompt.add_content(
+                        buffer_content.clone(),
+                        SubPromptType::ExtraContext,
+                        subprompt_priority,
+                    );
                 }
                 buffer_content.clone_from(&current_content);
                 last_reference.clone_from(&extra_info);
@@ -353,7 +394,11 @@ impl SubPrompt {
 
             if i == chunks.len() - 1 || extra_info != last_reference {
                 buffer_content.push_str(&extra_info);
-                temp_prompt.add_content(buffer_content.clone(), SubPromptType::ExtraContext, subprompt_priority);
+                temp_prompt.add_content(
+                    buffer_content.clone(),
+                    SubPromptType::ExtraContext,
+                    subprompt_priority,
+                );
                 buffer_content.clear();
             }
 

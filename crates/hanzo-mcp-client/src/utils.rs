@@ -14,7 +14,9 @@ pub fn disect_command(command: String) -> (HashMap<String, String>, String, Vec<
             let key = captures[1].to_string();
             let mut value = captures[2].to_string();
             // Remove quotes if they exist at the start and end
-            if (value.starts_with('"') && value.ends_with('"')) || (value.starts_with('\'') && value.ends_with('\'')) {
+            if (value.starts_with('"') && value.ends_with('"'))
+                || (value.starts_with('\'') && value.ends_with('\''))
+            {
                 value = value[1..value.len() - 1].to_string();
             }
             env_vars.insert(key, value);

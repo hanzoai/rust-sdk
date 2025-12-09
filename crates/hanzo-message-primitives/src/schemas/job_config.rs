@@ -29,7 +29,10 @@ impl JobConfig {
                 .custom_system_prompt
                 .clone()
                 .or_else(|| other.custom_system_prompt.clone()),
-            custom_prompt: self.custom_prompt.clone().or_else(|| other.custom_prompt.clone()),
+            custom_prompt: self
+                .custom_prompt
+                .clone()
+                .or_else(|| other.custom_prompt.clone()),
             temperature: self.temperature.or(other.temperature),
             max_tokens: self.max_tokens.or(other.max_tokens),
             seed: self.seed.or(other.seed),
@@ -38,7 +41,10 @@ impl JobConfig {
             stream: self.stream.or(other.stream),
             use_tools: self.use_tools.or(other.use_tools),
             thinking: self.thinking.or(other.thinking),
-            reasoning_effort: self.reasoning_effort.clone().or_else(|| other.reasoning_effort.clone()),
+            reasoning_effort: self
+                .reasoning_effort
+                .clone()
+                .or_else(|| other.reasoning_effort.clone()),
             web_search_enabled: self.web_search_enabled.or(other.web_search_enabled),
             other_model_params: self
                 .other_model_params
@@ -108,7 +114,8 @@ mod tests {
             "web_search_enabled": false
         }"#;
 
-        let job_config: JobConfig = serde_json::from_str(json_data).expect("Failed to deserialize JSON");
+        let job_config: JobConfig =
+            serde_json::from_str(json_data).expect("Failed to deserialize JSON");
 
         assert_eq!(job_config.custom_system_prompt, None);
         assert_eq!(job_config.custom_prompt, Some("".to_string()));

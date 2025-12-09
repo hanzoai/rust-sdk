@@ -125,7 +125,9 @@ impl HanzoPath {
 
     /// Returns the parent directory as a new HanzoPath, if it exists.
     pub fn parent(&self) -> Option<HanzoPath> {
-        self.path.parent().map(|p| HanzoPath::new(p.to_str().unwrap()))
+        self.path
+            .parent()
+            .map(|p| HanzoPath::new(p.to_str().unwrap()))
     }
 }
 
@@ -175,7 +177,8 @@ impl<'de> Deserialize<'de> for HanzoPath {
                         }
                     }
                 }
-                let actual_path: String = path_field.ok_or_else(|| de::Error::missing_field("path"))?;
+                let actual_path: String =
+                    path_field.ok_or_else(|| de::Error::missing_field("path"))?;
                 Ok(HanzoPath::from_str(&actual_path))
             }
         }
@@ -335,7 +338,8 @@ mod tests {
 
         // Create a file without an extension
         let path_without_extension = "word_files/christmas";
-        let hanzo_path_without_extension = HanzoPath::from_string(path_without_extension.to_string());
+        let hanzo_path_without_extension =
+            HanzoPath::from_string(path_without_extension.to_string());
         fs::write(hanzo_path_without_extension.as_path(), "test".as_bytes()).unwrap();
         assert_eq!(hanzo_path_without_extension.filename(), Some("christmas"));
 
@@ -358,7 +362,8 @@ mod tests {
 
         // Check if the serialized output matches the expected relative path
         let serialized_path_str =
-            serde_json::to_string(&os_path::OsPath::from("word_files/christmas.docx").to_string()).unwrap();
+            serde_json::to_string(&os_path::OsPath::from("word_files/christmas.docx").to_string())
+                .unwrap();
 
         assert_eq!(serialized_path, serialized_path_str);
     }

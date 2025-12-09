@@ -6,9 +6,11 @@ use serde_json::Value;
 use crate::hanzo_message::hanzo_message::HanzoMessage;
 
 use super::{
-    llm_message::{DetailedFunctionCall, LlmMessage},
     hanzo_fs::HanzoFileChunkCollection,
-    subprompts::{SubPrompt, SubPromptAssetContent, SubPromptAssetDetail, SubPromptAssetType, SubPromptType},
+    llm_message::{DetailedFunctionCall, LlmMessage},
+    subprompts::{
+        SubPrompt, SubPromptAssetContent, SubPromptAssetDetail, SubPromptAssetType, SubPromptType,
+    },
 };
 
 #[derive(Debug)]
@@ -94,7 +96,11 @@ impl Prompt {
         priority_value: u8,
     ) {
         let capped_priority_value = std::cmp::min(priority_value, 100);
-        let assets: Vec<(SubPromptAssetType, SubPromptAssetContent, SubPromptAssetDetail)> = files
+        let assets: Vec<(
+            SubPromptAssetType,
+            SubPromptAssetContent,
+            SubPromptAssetDetail,
+        )> = files
             .into_iter()
             .map(|(file_name, file_content)| {
                 let asset_type = Self::detect_asset_type(&file_name);
@@ -151,9 +157,15 @@ impl Prompt {
 
     /// Adds a sub-prompt that holds a Tool.
     /// Of note, priority value must be between 0-100, where higher is greater priority
-    pub fn add_tool(&mut self, tool_content: serde_json::Value, prompt_type: SubPromptType, priority_value: u8) {
+    pub fn add_tool(
+        &mut self,
+        tool_content: serde_json::Value,
+        prompt_type: SubPromptType,
+        priority_value: u8,
+    ) {
         let capped_priority_value = std::cmp::min(priority_value, 100);
-        let sub_prompt = SubPrompt::ToolAvailable(prompt_type, tool_content, capped_priority_value as u8);
+        let sub_prompt =
+            SubPrompt::ToolAvailable(prompt_type, tool_content, capped_priority_value as u8);
         self.add_sub_prompt(sub_prompt);
     }
 
@@ -197,14 +209,22 @@ impl Prompt {
     /// Of note, priority value must be between 0-100, where higher is greater priority
     pub fn add_function_call(&mut self, function_call: Value, priority_value: u8) {
         let capped_priority_value = std::cmp::min(priority_value, 100);
-        let sub_prompt = SubPrompt::FunctionCall(SubPromptType::Assistant, function_call, capped_priority_value as u8);
+        let sub_prompt = SubPrompt::FunctionCall(
+            SubPromptType::Assistant,
+            function_call,
+            capped_priority_value as u8,
+        );
 
         self.add_sub_prompt(sub_prompt);
     }
 
     /// Adds a sub-prompt that holds a function call response.
     /// Of note, priority value must be between 0-100, where higher is greater priority
-    pub fn add_function_call_response(&mut self, function_call_response: Value, priority_value: u8) {
+    pub fn add_function_call_response(
+        &mut self,
+        function_call_response: Value,
+        priority_value: u8,
+    ) {
         let capped_priority_value = std::cmp::min(priority_value, 100);
         let sub_prompt = SubPrompt::FunctionCallResponse(
             SubPromptType::Function,
@@ -281,7 +301,11 @@ impl Prompt {
 
     /// Adds multiple pre-prepared sub-prompts with a new priority value.
     /// The new priority value will be applied to all input sub-prompts.
-    pub fn add_sub_prompts_with_new_priority(&mut self, sub_prompts: Vec<SubPrompt>, new_priority: u8) {
+    pub fn add_sub_prompts_with_new_priority(
+        &mut self,
+        sub_prompts: Vec<SubPrompt>,
+        new_priority: u8,
+    ) {
         let capped_priority_value = std::cmp::min(new_priority, 100) as u8;
         let mut updated_sub_prompts = Vec::new();
         for mut sub_prompt in sub_prompts {
@@ -291,7 +315,9 @@ impl Prompt {
                 }
                 SubPrompt::Asset(_, _, _, _, priority) => *priority = capped_priority_value,
                 SubPrompt::FunctionCall(_, _, priority) => *priority = capped_priority_value,
-                SubPrompt::FunctionCallResponse(_, _, priority) => *priority = capped_priority_value,
+                SubPrompt::FunctionCallResponse(_, _, priority) => {
+                    *priority = capped_priority_value
+                }
                 SubPrompt::Omni(_, _, _, priority) => *priority = capped_priority_value,
             }
             updated_sub_prompts.push(sub_prompt);
@@ -317,15 +343,18 @@ impl Prompt {
     /// Used primarily for cutting down prompt when it is too large to fit in context window.
     pub fn remove_lowest_priority_sub_prompt(&mut self) -> Option<SubPrompt> {
         let lowest_priority = self.lowest_priority;
-        if let Some(position) = self.sub_prompts.iter().rposition(|sub_prompt| match sub_prompt {
-            SubPrompt::Content(_, _, priority) | SubPrompt::ToolAvailable(_, _, priority) => {
-                *priority == lowest_priority
-            }
-            SubPrompt::Asset(_, _, _, _, priority) => *priority == lowest_priority,
-            SubPrompt::FunctionCall(_, _, priority) => *priority == lowest_priority,
-            SubPrompt::FunctionCallResponse(_, _, priority) => *priority == lowest_priority,
-            SubPrompt::Omni(_, _, _, priority) => *priority == lowest_priority,
-        }) {
+        if let Some(position) =
+            self.sub_prompts
+                .iter()
+                .rposition(|sub_prompt| match sub_prompt {
+                    SubPrompt::Content(_, _, priority)
+                    | SubPrompt::ToolAvailable(_, _, priority) => *priority == lowest_priority,
+                    SubPrompt::Asset(_, _, _, _, priority) => *priority == lowest_priority,
+                    SubPrompt::FunctionCall(_, _, priority) => *priority == lowest_priority,
+                    SubPrompt::FunctionCallResponse(_, _, priority) => *priority == lowest_priority,
+                    SubPrompt::Omni(_, _, _, priority) => *priority == lowest_priority,
+                })
+        {
             return Some(self.remove_sub_prompt(position));
         }
         None
@@ -343,11 +372,14 @@ impl Prompt {
     {
         let mut removed_subprompts = vec![];
 
-        let mut current_token_count = self.generate_chat_completion_messages(None, token_counter).1;
+        let mut current_token_count = self
+            .generate_chat_completion_messages(None, token_counter)
+            .1;
         while current_token_count + 200 > max_prompt_tokens {
             match self.remove_lowest_priority_sub_prompt() {
                 Some(removed_sub_prompt) => {
-                    let removed_tokens = removed_sub_prompt.count_tokens_as_completion_message(token_counter);
+                    let removed_tokens =
+                        removed_sub_prompt.count_tokens_as_completion_message(token_counter);
                     if current_token_count >= removed_tokens {
                         current_token_count -= removed_tokens;
                     } else {
@@ -407,9 +439,12 @@ impl Prompt {
                     extra_context_content.push('\n');
                 }
                 SubPrompt::ToolAvailable(_, content, _) => {
-                    let tool_message = LlmMessage::import_functions_from_value(content.clone()).unwrap();
-                    current_length +=
-                        sub_prompt.count_tokens_with_pregenerated_completion_message(&tool_message, token_counter);
+                    let tool_message =
+                        LlmMessage::import_functions_from_value(content.clone()).unwrap();
+                    current_length += sub_prompt.count_tokens_with_pregenerated_completion_message(
+                        &tool_message,
+                        token_counter,
+                    );
                     tiktoken_messages.push(tool_message);
                 }
                 SubPrompt::FunctionCall(_, content, _) => {
@@ -439,17 +474,25 @@ impl Prompt {
                         new_message.function_call = Some(DetailedFunctionCall {
                             name: name.to_string(),
                             arguments,
-                            id: if call_id.is_empty() { None } else { Some(call_id) },
+                            id: if call_id.is_empty() {
+                                None
+                            } else {
+                                Some(call_id)
+                            },
                         });
                     }
-                    current_length +=
-                        sub_prompt.count_tokens_with_pregenerated_completion_message(&new_message, token_counter);
+                    current_length += sub_prompt.count_tokens_with_pregenerated_completion_message(
+                        &new_message,
+                        token_counter,
+                    );
                     function_calls.push(new_message);
                 }
                 SubPrompt::FunctionCallResponse(_, content, _) => {
                     let mut new_message = LlmMessage {
                         // OpenAI works using "function" while ollama uses "tool"
-                        role: tool_response_field_name.clone().or(Some("function".to_string())),
+                        role: tool_response_field_name
+                            .clone()
+                            .or(Some("function".to_string())),
                         content: None,
                         name: None,
                         function_call: None,
@@ -470,10 +513,15 @@ impl Prompt {
                             new_message.name = Some(call_id.to_string());
                         }
                     }
-                    new_message.content = content.get("response").and_then(|r| r.as_str()).map(|r| r.to_string());
+                    new_message.content = content
+                        .get("response")
+                        .and_then(|r| r.as_str())
+                        .map(|r| r.to_string());
 
-                    current_length +=
-                        sub_prompt.count_tokens_with_pregenerated_completion_message(&new_message, token_counter);
+                    current_length += sub_prompt.count_tokens_with_pregenerated_completion_message(
+                        &new_message,
+                        token_counter,
+                    );
                     function_call_responses.push(new_message);
                 }
                 SubPrompt::Content(SubPromptType::UserLastMessage, content, _) => {
@@ -496,16 +544,21 @@ impl Prompt {
                     if let SubPromptType::UserLastMessage = prompt_type {
                         last_user_message = Some(new_message);
                     } else {
-                        current_length +=
-                            sub_prompt.count_tokens_with_pregenerated_completion_message(&new_message, token_counter);
+                        current_length += sub_prompt
+                            .count_tokens_with_pregenerated_completion_message(
+                                &new_message,
+                                token_counter,
+                            );
                         tiktoken_messages.push(new_message);
                     }
                 }
                 _ => {
                     // Process the current sub-prompt
                     let new_message = sub_prompt.into_chat_completion_request_message();
-                    current_length +=
-                        sub_prompt.count_tokens_with_pregenerated_completion_message(&new_message, token_counter);
+                    current_length += sub_prompt.count_tokens_with_pregenerated_completion_message(
+                        &new_message,
+                        token_counter,
+                    );
                     tiktoken_messages.push(new_message);
                 }
             }
@@ -530,9 +583,15 @@ impl Prompt {
                 name: None,
                 function_call: None,
                 functions: None,
-                images: last_user_message.as_ref().and_then(|msg| msg.images.clone()),
-                videos: last_user_message.as_ref().and_then(|msg| msg.videos.clone()),
-                audios: last_user_message.as_ref().and_then(|msg| msg.audios.clone()),
+                images: last_user_message
+                    .as_ref()
+                    .and_then(|msg| msg.images.clone()),
+                videos: last_user_message
+                    .as_ref()
+                    .and_then(|msg| msg.videos.clone()),
+                audios: last_user_message
+                    .as_ref()
+                    .and_then(|msg| msg.audios.clone()),
                 tool_calls: None,
             };
             current_length += token_counter(&[combined_message.clone()]);
@@ -601,7 +660,9 @@ impl Prompt {
                 }
                 SubPrompt::Content(prompt_type, content, _priority_value) => {
                     let new_message = match prompt_type {
-                        SubPromptType::System | SubPromptType::Assistant => format!("System: {}\n", content),
+                        SubPromptType::System | SubPromptType::Assistant => {
+                            format!("System: {}\n", content)
+                        }
                         SubPromptType::User => format!("User: {}\n", content),
                         _ => String::new(),
                     };
@@ -612,7 +673,9 @@ impl Prompt {
                 SubPrompt::FunctionCall(prompt_type, content, _priority_value)
                 | SubPrompt::FunctionCallResponse(prompt_type, content, _priority_value) => {
                     let new_message = match prompt_type {
-                        SubPromptType::System | SubPromptType::Assistant => format!("System: {}\n", content),
+                        SubPromptType::System | SubPromptType::Assistant => {
+                            format!("System: {}\n", content)
+                        }
                         SubPromptType::User => format!("User: {}\n", content),
                         _ => String::new(),
                     };

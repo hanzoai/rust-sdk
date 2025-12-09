@@ -1,7 +1,6 @@
 #[cfg(test)]
 mod tests {
     use hanzo_message_primitives::{
-        schemas::registration_code::RegistrationCodeSimple,
         hanzo_message::{
             hanzo_message::{MessageBody, MessageData},
             hanzo_message_schemas::{IdentityPermissions, JobMessage, MessageSchemaType},
@@ -14,18 +13,23 @@ mod tests {
             hanzo_message_builder::HanzoMessageBuilder,
             signatures::{string_to_signature_secret_key, unsafe_deterministic_signature_keypair},
         },
+        schemas::registration_code::RegistrationCodeSimple,
     };
 
     #[test]
     fn test_job_message() {
-        let my_encryption_sk =
-            string_to_encryption_static_key("b01a8082dba0a866fa82d8d3e2dea25b053387e2ac06f35a5e237104de2c5374")
-                .unwrap();
-        let my_signature_sk =
-            string_to_signature_secret_key("03b1cd8cdce9a8a54ce73a262f11c3ff17eedf9f696f14e9ab55a89476b22306").unwrap();
-        let receiver_public_key =
-            string_to_encryption_public_key("798cbd64d78c4a0fba338b2a6349634940dc4e5b601db1029e02c41e0fe05679")
-                .unwrap();
+        let my_encryption_sk = string_to_encryption_static_key(
+            "b01a8082dba0a866fa82d8d3e2dea25b053387e2ac06f35a5e237104de2c5374",
+        )
+        .unwrap();
+        let my_signature_sk = string_to_signature_secret_key(
+            "03b1cd8cdce9a8a54ce73a262f11c3ff17eedf9f696f14e9ab55a89476b22306",
+        )
+        .unwrap();
+        let receiver_public_key = string_to_encryption_public_key(
+            "798cbd64d78c4a0fba338b2a6349634940dc4e5b601db1029e02c41e0fe05679",
+        )
+        .unwrap();
 
         let node_sender = "@@localhost.hanzo".to_string();
         let node_receiver = "@@localhost.hanzo".to_string();
@@ -53,7 +57,8 @@ mod tests {
         // Check if the message content is as expected
         if let MessageBody::Unencrypted(hanzo_body) = &message.body {
             if let MessageData::Unencrypted(hanzo_data) = &hanzo_body.message_data {
-                let job_message: JobMessage = serde_json::from_str(&hanzo_data.message_raw_content).unwrap();
+                let job_message: JobMessage =
+                    serde_json::from_str(&hanzo_data.message_raw_content).unwrap();
                 assert_eq!(job_message.job_id, inbox);
                 assert_eq!(job_message.content, "hello hello, are u there?");
                 assert_eq!(job_message.fs_files_paths, vec![]);
@@ -65,7 +70,10 @@ mod tests {
         assert_eq!(message.external_metadata.recipient, node_receiver);
 
         // Check if the encryption method is as expected
-        assert_eq!(message.encryption, EncryptionMethod::DiffieHellmanChaChaPoly1305);
+        assert_eq!(
+            message.encryption,
+            EncryptionMethod::DiffieHellmanChaChaPoly1305
+        );
     }
 
     #[test]
@@ -78,13 +86,18 @@ mod tests {
         let sender = "@@my_node.hanzo".to_string();
         let scheduled_time = "2023-07-02T20:53:34Z".to_string();
 
-        let message_result = HanzoMessageBuilder::new(my_encryption_sk, my_identity_sk, node2_encryption_pk)
-            .message_raw_content("body content".to_string())
-            .body_encryption(EncryptionMethod::None)
-            .message_schema_type(MessageSchemaType::TextContent)
-            .internal_metadata("".to_string(), "".to_string(), EncryptionMethod::None, None)
-            .external_metadata_with_schedule(recipient.clone(), sender.clone(), scheduled_time.clone())
-            .build();
+        let message_result =
+            HanzoMessageBuilder::new(my_encryption_sk, my_identity_sk, node2_encryption_pk)
+                .message_raw_content("body content".to_string())
+                .body_encryption(EncryptionMethod::None)
+                .message_schema_type(MessageSchemaType::TextContent)
+                .internal_metadata("".to_string(), "".to_string(), EncryptionMethod::None, None)
+                .external_metadata_with_schedule(
+                    recipient.clone(),
+                    sender.clone(),
+                    scheduled_time.clone(),
+                )
+                .build();
 
         println!("message_result = {:?}", message_result);
         assert!(message_result.is_ok());
@@ -108,7 +121,9 @@ mod tests {
         assert_eq!(external_metadata.sender, sender);
         assert_eq!(external_metadata.scheduled_time, scheduled_time);
         assert_eq!(external_metadata.recipient, recipient);
-        assert!(message_clone.verify_outer_layer_signature(&my_identity_pk).unwrap())
+        assert!(message_clone
+            .verify_outer_layer_signature(&my_identity_pk)
+            .unwrap())
     }
 
     #[test]
@@ -121,18 +136,25 @@ mod tests {
         let recipient = "@@other_node.hanzo".to_string();
         let sender = "@@my_node.hanzo".to_string();
 
-        let message_result = HanzoMessageBuilder::new(my_encryption_sk.clone(), my_identity_sk, node2_encryption_pk)
-            .message_raw_content("body content".to_string())
-            .body_encryption(EncryptionMethod::DiffieHellmanChaChaPoly1305)
-            .message_schema_type(MessageSchemaType::TextContent)
-            .internal_metadata("".to_string(), "".to_string(), EncryptionMethod::None, None)
-            .external_metadata(recipient, sender.clone())
-            .build();
+        let message_result = HanzoMessageBuilder::new(
+            my_encryption_sk.clone(),
+            my_identity_sk,
+            node2_encryption_pk,
+        )
+        .message_raw_content("body content".to_string())
+        .body_encryption(EncryptionMethod::DiffieHellmanChaChaPoly1305)
+        .message_schema_type(MessageSchemaType::TextContent)
+        .internal_metadata("".to_string(), "".to_string(), EncryptionMethod::None, None)
+        .external_metadata(recipient, sender.clone())
+        .build();
 
         assert!(message_result.is_ok());
         let message = message_result.unwrap();
         let message_clone = message.clone();
-        assert_eq!(message.encryption, EncryptionMethod::DiffieHellmanChaChaPoly1305);
+        assert_eq!(
+            message.encryption,
+            EncryptionMethod::DiffieHellmanChaChaPoly1305
+        );
 
         let decrypted_message = message
             .decrypt_outer_layer(&my_encryption_sk, &node2_encryption_pk)
@@ -159,7 +181,9 @@ mod tests {
         }
         let external_metadata = message.external_metadata;
         assert_eq!(external_metadata.sender, sender);
-        assert!(message_clone.verify_outer_layer_signature(&my_identity_pk).unwrap())
+        assert!(message_clone
+            .verify_outer_layer_signature(&my_identity_pk)
+            .unwrap())
     }
 
     #[test]
@@ -171,18 +195,22 @@ mod tests {
         let recipient = "@@other_node.hanzo".to_string();
         let sender = "@@my_node.hanzo".to_string();
 
-        let message_result = HanzoMessageBuilder::new(my_encryption_sk.clone(), my_identity_sk, node2_encryption_pk)
-            .message_raw_content("body content".to_string())
-            .no_body_encryption()
-            .message_schema_type(MessageSchemaType::TextContent)
-            .internal_metadata(
-                "".to_string(),
-                "".to_string(),
-                EncryptionMethod::DiffieHellmanChaChaPoly1305,
-                None,
-            )
-            .external_metadata(recipient, sender.clone())
-            .build();
+        let message_result = HanzoMessageBuilder::new(
+            my_encryption_sk.clone(),
+            my_identity_sk,
+            node2_encryption_pk,
+        )
+        .message_raw_content("body content".to_string())
+        .no_body_encryption()
+        .message_schema_type(MessageSchemaType::TextContent)
+        .internal_metadata(
+            "".to_string(),
+            "".to_string(),
+            EncryptionMethod::DiffieHellmanChaChaPoly1305,
+            None,
+        )
+        .external_metadata(recipient, sender.clone())
+        .build();
 
         assert!(message_result.is_ok());
         let message = message_result.unwrap();
@@ -208,7 +236,9 @@ mod tests {
         assert_eq!(message.encryption, EncryptionMethod::None);
         let external_metadata = message.external_metadata;
         assert_eq!(external_metadata.sender, sender);
-        assert!(message_clone.verify_outer_layer_signature(&my_identity_pk).unwrap())
+        assert!(message_clone
+            .verify_outer_layer_signature(&my_identity_pk)
+            .unwrap())
     }
 
     #[test]
@@ -220,7 +250,8 @@ mod tests {
         let (my_encryption_sk, _my_encryption_pk) = unsafe_deterministic_encryption_keypair(0);
 
         let (profile_identity_sk, _profile_identity_pk) = unsafe_deterministic_signature_keypair(1);
-        let (profile_encryption_sk, _profile_encryption_pk) = unsafe_deterministic_encryption_keypair(1);
+        let (profile_encryption_sk, _profile_encryption_pk) =
+            unsafe_deterministic_encryption_keypair(1);
         let (_, node2_encryption_pk) = unsafe_deterministic_encryption_keypair(2);
 
         let recipient = "@@other_node.hanzo".to_string();
@@ -250,7 +281,10 @@ mod tests {
         let message = message_result.unwrap();
         let message_clone = message.clone();
 
-        assert_eq!(message.encryption, EncryptionMethod::DiffieHellmanChaChaPoly1305);
+        assert_eq!(
+            message.encryption,
+            EncryptionMethod::DiffieHellmanChaChaPoly1305
+        );
 
         let decrypted_message = message
             .decrypt_outer_layer(&my_encryption_sk, &node2_encryption_pk)
@@ -276,21 +310,29 @@ mod tests {
                 assert_eq!(registration_code.permission_type, "profile");
                 assert_eq!(registration_code.identity_type, "admin");
             }
-            assert_eq!(hanzo_body.internal_metadata.sender_subidentity, sender_subidentity);
+            assert_eq!(
+                hanzo_body.internal_metadata.sender_subidentity,
+                sender_subidentity
+            );
         }
 
         let external_metadata = message.external_metadata;
         assert_eq!(external_metadata.sender, recipient);
-        assert!(message_clone.verify_outer_layer_signature(&my_identity_pk).unwrap())
+        assert!(message_clone
+            .verify_outer_layer_signature(&my_identity_pk)
+            .unwrap())
     }
 
     #[test]
     fn test_initial_registration_with_no_code_for_device() {
-        let (my_device_identity_sk, _my_device_identity_pk) = unsafe_deterministic_signature_keypair(0);
-        let (my_device_encryption_sk, _my_device_encryption_pk) = unsafe_deterministic_encryption_keypair(0);
+        let (my_device_identity_sk, _my_device_identity_pk) =
+            unsafe_deterministic_signature_keypair(0);
+        let (my_device_encryption_sk, _my_device_encryption_pk) =
+            unsafe_deterministic_encryption_keypair(0);
 
         let (profile_identity_sk, _profile_identity_pk) = unsafe_deterministic_signature_keypair(1);
-        let (profile_encryption_sk, _profile_encryption_pk) = unsafe_deterministic_encryption_keypair(1);
+        let (profile_encryption_sk, _profile_encryption_pk) =
+            unsafe_deterministic_encryption_keypair(1);
 
         let recipient = "@@other_node.hanzo".to_string();
         let sender = recipient.clone();
@@ -333,7 +375,10 @@ mod tests {
                 assert_eq!(registration_code.permission_type, "admin");
                 assert_eq!(registration_code.identity_type, "device");
             }
-            assert_eq!(hanzo_body.internal_metadata.sender_subidentity, sender_subidentity);
+            assert_eq!(
+                hanzo_body.internal_metadata.sender_subidentity,
+                sender_subidentity
+            );
         }
 
         let external_metadata = message.external_metadata;
@@ -346,7 +391,8 @@ mod tests {
         let (my_encryption_sk, _my_encryption_pk) = unsafe_deterministic_encryption_keypair(0);
         let (_, node2_encryption_pk) = unsafe_deterministic_encryption_keypair(1);
 
-        let message_result = HanzoMessageBuilder::new(my_encryption_sk, my_identity_sk, node2_encryption_pk).build();
+        let message_result =
+            HanzoMessageBuilder::new(my_encryption_sk, my_identity_sk, node2_encryption_pk).build();
         assert!(message_result.is_err());
     }
 }

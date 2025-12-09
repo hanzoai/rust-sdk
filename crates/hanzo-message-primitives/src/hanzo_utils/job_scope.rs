@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
-use super::{search_mode::VectorSearchMode, hanzo_path::HanzoPath};
+use super::{hanzo_path::HanzoPath, search_mode::VectorSearchMode};
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, ToSchema)]
 pub struct MinimalJobScope {
@@ -56,12 +56,19 @@ mod tests {
             "vector_search_mode": "FillUpTo25k"
         });
 
-        let deserialized: MinimalJobScope = serde_json::from_value(json_data).expect("Failed to deserialize");
+        let deserialized: MinimalJobScope =
+            serde_json::from_value(json_data).expect("Failed to deserialize");
 
         assert!(deserialized.vector_fs_items.is_empty());
         assert_eq!(deserialized.vector_fs_folders.len(), 1);
-        assert_eq!(deserialized.vector_fs_folders[0].relative_path(), "My Files (Private)");
-        assert_eq!(deserialized.vector_search_mode, VectorSearchMode::FillUpTo25k);
+        assert_eq!(
+            deserialized.vector_fs_folders[0].relative_path(),
+            "My Files (Private)"
+        );
+        assert_eq!(
+            deserialized.vector_search_mode,
+            VectorSearchMode::FillUpTo25k
+        );
     }
 
     #[test]
@@ -72,7 +79,8 @@ mod tests {
             "vector_search_mode": "FillUpTo25k"
         });
 
-        let deserialized: MinimalJobScope = serde_json::from_value(json_data).expect("Failed to deserialize");
+        let deserialized: MinimalJobScope =
+            serde_json::from_value(json_data).expect("Failed to deserialize");
 
         assert_eq!(deserialized.vector_fs_items.len(), 2);
         assert_eq!(
@@ -84,8 +92,14 @@ mod tests {
             os_path::OsPath::from("path/to/file2").to_string()
         );
         assert_eq!(deserialized.vector_fs_folders.len(), 1);
-        assert_eq!(deserialized.vector_fs_folders[0].relative_path(), "My Files (Private)");
-        assert_eq!(deserialized.vector_search_mode, VectorSearchMode::FillUpTo25k);
+        assert_eq!(
+            deserialized.vector_fs_folders[0].relative_path(),
+            "My Files (Private)"
+        );
+        assert_eq!(
+            deserialized.vector_search_mode,
+            VectorSearchMode::FillUpTo25k
+        );
     }
 
     #[test]
@@ -96,7 +110,8 @@ mod tests {
             // vector_search_mode is intentionally omitted
         });
 
-        let deserialized: MinimalJobScope = serde_json::from_value(json_data).expect("Failed to deserialize");
+        let deserialized: MinimalJobScope =
+            serde_json::from_value(json_data).expect("Failed to deserialize");
 
         assert_eq!(deserialized.vector_fs_items.len(), 1);
         assert_eq!(
@@ -108,7 +123,10 @@ mod tests {
             deserialized.vector_fs_folders[0].relative_path(),
             os_path::OsPath::from("My Files (Private)").to_string()
         );
-        assert_eq!(deserialized.vector_search_mode, VectorSearchMode::FillUpTo25k);
+        assert_eq!(
+            deserialized.vector_search_mode,
+            VectorSearchMode::FillUpTo25k
+        );
         // Check default
     }
 }

@@ -2,7 +2,9 @@
 
 use crate::prompts::CTO_PROMPT;
 use crate::tools::ToolRegistry;
-use crate::traits::{AgentConfig, AgentError, AgentOutput, Result, SpecializedAgent, ToolDefinition, Usage};
+use crate::traits::{
+    AgentConfig, AgentError, AgentOutput, Result, SpecializedAgent, ToolDefinition, Usage,
+};
 use async_trait::async_trait;
 use std::sync::Arc;
 
@@ -106,7 +108,9 @@ impl SpecializedAgent for CtoAgent {
         _input: &str,
         _config: &AgentConfig,
     ) -> Result<Box<dyn futures::Stream<Item = Result<String>> + Send + Unpin>> {
-        Err(AgentError::Other("Streaming not yet implemented".to_string()))
+        Err(AgentError::Other(
+            "Streaming not yet implemented".to_string(),
+        ))
     }
 }
 

@@ -60,7 +60,10 @@ pub fn get_envs() -> HashMap<String, String> {
             }
         }
         Err(e) => {
-            error!("error executing default shell to grab environment variables: {}", e);
+            error!(
+                "error executing default shell to grab environment variables: {}",
+                e
+            );
             HashMap::new()
         }
     }

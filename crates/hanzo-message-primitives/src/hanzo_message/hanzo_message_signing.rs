@@ -1,4 +1,4 @@
-use super::hanzo_message::{MessageBody, HanzoMessage};
+use super::hanzo_message::{HanzoMessage, MessageBody};
 use super::hanzo_message_error::HanzoMessageError;
 
 use blake3::Hasher;
@@ -14,15 +14,19 @@ use std::env;
 use std::iter::FromIterator;
 
 impl HanzoMessage {
-    pub fn sign_outer_layer(&self, secret_key: &SigningKey) -> Result<HanzoMessage, HanzoMessageError> {
+    pub fn sign_outer_layer(
+        &self,
+        secret_key: &SigningKey,
+    ) -> Result<HanzoMessage, HanzoMessageError> {
         let mut message_clone = self.clone();
 
         // Calculate the hash of the message with an empty outer signature
         let message_hash = message_clone.calculate_message_hash_with_empty_outer_signature();
 
         // Convert the hexadecimal hash back to bytes
-        let message_hash_bytes = hex::decode(message_hash)
-            .map_err(|e| HanzoMessageError::SigningError(format!("Failed to decode message hash: {}", e)))?;
+        let message_hash_bytes = hex::decode(message_hash).map_err(|e| {
+            HanzoMessageError::SigningError(format!("Failed to decode message hash: {}", e))
+        })?;
 
         let signature = secret_key.sign(message_hash_bytes.as_slice());
         message_clone.external_metadata.signature = hex::encode(signature.to_bytes());
@@ -35,8 +39,9 @@ impl HanzoMessage {
         let hanzo_body_hash = self.calculate_message_hash_with_empty_inner_signature()?;
 
         // Convert the hexadecimal hash back to bytes
-        let hanzo_body_hash_bytes = hex::decode(hanzo_body_hash)
-            .map_err(|e| HanzoMessageError::SigningError(format!("Failed to decode message hash: {}", e)))?;
+        let hanzo_body_hash_bytes = hex::decode(hanzo_body_hash).map_err(|e| {
+            HanzoMessageError::SigningError(format!("Failed to decode message hash: {}", e))
+        })?;
 
         // Sign the hash of the HanzoBody
         let signature = secret_key.sign(hanzo_body_hash_bytes.as_slice());
@@ -64,8 +69,9 @@ impl HanzoMessage {
         let hex_signature = &self.external_metadata.signature;
 
         // Decode the base58 signature to bytes
-        let signature_bytes = hex::decode(hex_signature)
-            .map_err(|e| HanzoMessageError::SigningError(format!("Failed to decode signature: {}", e)))?;
+        let signature_bytes = hex::decode(hex_signature).map_err(|e| {
+            HanzoMessageError::SigningError(format!("Failed to decode signature: {}", e))
+        })?;
 
         // Convert the bytes to Signature
         let signature_bytes_slice = &signature_bytes[..];
@@ -73,7 +79,10 @@ impl HanzoMessage {
             signature_bytes_slice
                 .try_into()
                 .map_err(|e: std::array::TryFromSliceError| {
-                    HanzoMessageError::SigningError(format!("Failed to convert signature bytes to array: {}", e))
+                    HanzoMessageError::SigningError(format!(
+                        "Failed to convert signature bytes to array: {}",
+                        e
+                    ))
                 })?;
 
         let signature = ed25519_dalek::Signature::from_bytes(signature_bytes_array);
@@ -82,8 +91,9 @@ impl HanzoMessage {
         let message_hash = self.calculate_message_hash_with_empty_outer_signature();
 
         // Convert the hexadecimal hash back to bytes
-        let message_hash_bytes = hex::decode(message_hash)
-            .map_err(|e| HanzoMessageError::SigningError(format!("Failed to decode message hash: {}", e)))?;
+        let message_hash_bytes = hex::decode(message_hash).map_err(|e| {
+            HanzoMessageError::SigningError(format!("Failed to decode message hash: {}", e))
+        })?;
 
         // Verify the signature against the hash of the message
         match public_key.verify(&message_hash_bytes, &signature) {
@@ -111,8 +121,9 @@ impl HanzoMessage {
         let signature = &hanzo_body.internal_metadata.signature;
 
         // Decode the base58 signature to bytes
-        let signature_bytes = hex::decode(signature)
-            .map_err(|e| HanzoMessageError::SigningError(format!("Failed to decode signature: {}", e)))?;
+        let signature_bytes = hex::decode(signature).map_err(|e| {
+            HanzoMessageError::SigningError(format!("Failed to decode signature: {}", e))
+        })?;
 
         // Convert the bytes to Signature
         let signature_bytes_slice = &signature_bytes[..];
@@ -120,7 +131,10 @@ impl HanzoMessage {
             signature_bytes_slice
                 .try_into()
                 .map_err(|e: std::array::TryFromSliceError| {
-                    HanzoMessageError::SigningError(format!("Failed to convert signature bytes to array: {}", e))
+                    HanzoMessageError::SigningError(format!(
+                        "Failed to convert signature bytes to array: {}",
+                        e
+                    ))
                 })?;
         let signature = ed25519_dalek::Signature::from_bytes(signature_bytes_array);
 
@@ -128,8 +142,9 @@ impl HanzoMessage {
         let hanzo_body_hash = self.calculate_message_hash_with_empty_inner_signature()?;
 
         // Convert the hexadecimal hash back to bytes
-        let hanzo_body_hash_bytes = hex::decode(hanzo_body_hash)
-            .map_err(|e| HanzoMessageError::SigningError(format!("Failed to decode message hash: {}", e)))?;
+        let hanzo_body_hash_bytes = hex::decode(hanzo_body_hash).map_err(|e| {
+            HanzoMessageError::SigningError(format!("Failed to decode message hash: {}", e))
+        })?;
 
         // Verify the signature against the hash of the HanzoBody
         match public_key.verify(&hanzo_body_hash_bytes, &signature) {
@@ -180,7 +195,10 @@ impl HanzoMessage {
     fn sort_json(value: &Value) -> Value {
         match value {
             Value::Object(map) => {
-                let sorted_map: BTreeMap<_, _> = map.iter().map(|(k, v)| (k.clone(), Self::sort_json(v))).collect();
+                let sorted_map: BTreeMap<_, _> = map
+                    .iter()
+                    .map(|(k, v)| (k.clone(), Self::sort_json(v)))
+                    .collect();
                 Value::Object(serde_json::Map::from_iter(sorted_map))
             }
             Value::Array(arr) => Value::Array(arr.iter().map(Self::sort_json).collect()),
@@ -188,7 +206,9 @@ impl HanzoMessage {
         }
     }
 
-    pub fn calculate_message_hash_with_empty_inner_signature(&self) -> Result<String, HanzoMessageError> {
+    pub fn calculate_message_hash_with_empty_inner_signature(
+        &self,
+    ) -> Result<String, HanzoMessageError> {
         // Get the HanzoBody ready for hashing
         let hanzo_body_string = self.inner_content_ready_for_hashing()?;
 
@@ -232,7 +252,10 @@ impl HanzoMessage {
     ) -> Result<(String, String), HanzoMessageError> {
         // Read the secret desktop key from the environment
         let secret_desktop_key = env::var("SECRET_DESKTOP_KEY").map_err(|e| {
-            HanzoMessageError::SigningError(format!("Failed to read SECRET_DESKTOP_KEY from environment: {}", e))
+            HanzoMessageError::SigningError(format!(
+                "Failed to read SECRET_DESKTOP_KEY from environment: {}",
+                e
+            ))
         })?;
 
         // Convert the public key to hex
@@ -269,7 +292,9 @@ impl HanzoMessage {
 mod tests {
     use crate::{
         hanzo_message::hanzo_message::{EncryptedHanzoBody, ExternalMetadata, HanzoVersion},
-        hanzo_utils::{encryption::EncryptionMethod, signatures::unsafe_deterministic_signature_keypair},
+        hanzo_utils::{
+            encryption::EncryptionMethod, signatures::unsafe_deterministic_signature_keypair,
+        },
     };
 
     use super::*;

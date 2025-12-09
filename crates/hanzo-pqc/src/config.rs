@@ -1,14 +1,10 @@
 //! PQC configuration
 
-use serde::{Deserialize, Serialize};
 use crate::{
-    kem::KemAlgorithm,
-    signature::SignatureAlgorithm,
-    kdf::KdfAlgorithm,
-    hybrid::HybridMode,
-    privacy_tiers::PrivacyTier,
-    wire_protocol::NodeMode,
+    hybrid::HybridMode, kdf::KdfAlgorithm, kem::KemAlgorithm, privacy_tiers::PrivacyTier,
+    signature::SignatureAlgorithm, wire_protocol::NodeMode,
 };
+use serde::{Deserialize, Serialize};
 
 /// Default KEM algorithm selection
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -78,7 +74,7 @@ impl Default for PqcConfig {
             min_privacy_tier: PrivacyTier::AccessOpen,
             fips_mode: false,
             verify_attestation: false,
-            key_lifetime: 86400,      // 24 hours
+            key_lifetime: 86400,         // 24 hours
             reattestaton_interval: 3600, // 1 hour
         }
     }
@@ -112,11 +108,11 @@ impl PqcConfig {
             min_privacy_tier: PrivacyTier::AccessGpuTeeIoMax,
             fips_mode: true,
             verify_attestation: true,
-            key_lifetime: 3600,       // 1 hour
+            key_lifetime: 3600,         // 1 hour
             reattestaton_interval: 600, // 10 minutes
         }
     }
-    
+
     /// Create configuration for performance
     pub fn performance_optimized() -> Self {
         Self {
@@ -133,16 +129,16 @@ impl PqcConfig {
             min_privacy_tier: PrivacyTier::AccessOpen,
             fips_mode: false,
             verify_attestation: false,
-            key_lifetime: 86400 * 7,  // 1 week
+            key_lifetime: 86400 * 7,      // 1 week
             reattestaton_interval: 86400, // 1 day
         }
     }
-    
+
     /// Create configuration for specific privacy tier
     pub fn for_privacy_tier(tier: PrivacyTier) -> Self {
         let mut config = Self::default();
         config.min_privacy_tier = tier;
-        
+
         match tier {
             PrivacyTier::AccessOpen => {
                 config.node_mode = NodeMode::SoftwareOnly;
@@ -167,31 +163,32 @@ impl PqcConfig {
                 config.default_sig = DefaultSig::MlDsa87;
             }
         }
-        
+
         config
     }
-    
+
     /// Validate configuration consistency
     pub fn validate(&self) -> Result<(), String> {
         // Check FIPS mode requirements
-        if self.fips_mode
-            && self.rng != RngSource::FipsDrbg && self.rng != RngSource::Os {
-                return Err("FIPS mode requires approved RNG".to_string());
-            }
-            
-            // ML-KEM and ML-DSA are FIPS approved
-            // X25519 hybrid is allowed per NIST guidance
-        
+        if self.fips_mode && self.rng != RngSource::FipsDrbg && self.rng != RngSource::Os {
+            return Err("FIPS mode requires approved RNG".to_string());
+        }
+
+        // ML-KEM and ML-DSA are FIPS approved
+        // X25519 hybrid is allowed per NIST guidance
+
         // Check attestation requirements
         if self.min_privacy_tier >= PrivacyTier::AccessCpuTee && !self.verify_attestation {
             return Err("CPU TEE tier requires attestation verification".to_string());
         }
-        
+
         // Check node mode compatibility
         match self.node_mode {
             NodeMode::SoftwareOnly => {
                 if self.min_privacy_tier > PrivacyTier::AccessOpen {
-                    return Err("Software-only mode cannot provide higher privacy tiers".to_string());
+                    return Err(
+                        "Software-only mode cannot provide higher privacy tiers".to_string()
+                    );
                 }
             }
             NodeMode::SimOnly => {
@@ -203,7 +200,7 @@ impl PqcConfig {
                 // Can support all tiers
             }
         }
-        
+
         Ok(())
     }
 }
@@ -235,19 +232,22 @@ impl Default for MigrationConfig {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_config_validation() {
-        if std::env::var("CI").is_ok() { println!("Skipping test in CI: test_config_validation"); return; }
+        if std::env::var("CI").is_ok() {
+            println!("Skipping test in CI: test_config_validation");
+            return;
+        }
         let config = PqcConfig::default();
         assert!(config.validate().is_ok());
-        
+
         let mut bad_config = PqcConfig::default();
         bad_config.node_mode = NodeMode::SoftwareOnly;
         bad_config.min_privacy_tier = PrivacyTier::AccessCpuTee;
         assert!(bad_config.validate().is_err());
     }
-    
+
     #[test]
     fn test_tier_config() {
         let config = PqcConfig::for_privacy_tier(PrivacyTier::AccessGpuTeeIoMax);

@@ -1,11 +1,11 @@
 // Tool modules will be loaded from /Users/z/work/hanzo/tools/rust/*
 // This module provides the integration point for the canonical tool implementations
 
-pub mod personality;
 pub mod mode_tool;
+pub mod personality;
 
 pub use mode_tool::{ModeTool, ModeToolArgs, ModeToolDefinition};
-pub use personality::{ToolPersonality, PersonalityRegistry};
+pub use personality::{PersonalityRegistry, ToolPersonality};
 
 // These will be loaded from /Users/z/work/hanzo/tools/rust/* when available
 // pub use computer_control::ComputerControlTool;
