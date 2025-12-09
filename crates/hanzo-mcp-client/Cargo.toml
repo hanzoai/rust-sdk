@@ -1,0 +1,45 @@
+[package]
+name = "hanzo-mcp-client"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Model Context Protocol client for connecting to MCP servers"
+readme = "README.md"
+keywords = ["mcp", "hanzo", "ai", "tools", "llm"]
+categories = ["api-bindings", "development-tools"]
+
+[dependencies]
+# Internal crates
+hanzo-mcp-core = { workspace = true }
+
+# Core
+thiserror = { workspace = true }
+async-trait = { workspace = true }
+futures = { workspace = true }
+log = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+anyhow = { workspace = true }
+
+# MCP transport (rmcp-based)
+rmcp = { workspace = true, features = [
+    "client",
+    "transport-child-process",
+    "transport-sse-client",
+    "transport-streamable-http-client",
+    "reqwest"
+] }
+
+# Utilities
+regex = { workspace = true }
+once_cell = { workspace = true }
+home = { workspace = true }
+strip-ansi-escapes = { workspace = true }
+
+[dev-dependencies]
+tokio-test = "0.4"
+mockall = "0.11"

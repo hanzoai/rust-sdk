@@ -24,7 +24,9 @@ pub fn unsafe_deterministic_signature_keypair(n: u32) -> (SigningKey, VerifyingK
 
 pub fn ephemeral_signature_keypair() -> (SigningKey, VerifyingKey) {
     let mut csprng = OsRng;
-    let signing_key = SigningKey::generate(&mut csprng);
+    let mut secret_bytes = [0u8; 32];
+    rand::RngCore::fill_bytes(&mut csprng, &mut secret_bytes);
+    let signing_key = SigningKey::from_bytes(&secret_bytes);
     let verifying_key = signing_key.verifying_key();
     (signing_key, verifying_key)
 }

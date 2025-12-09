@@ -1,0 +1,17 @@
+[package]
+name = "hanzo-mcp-core"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Core traits and types for Hanzo MCP (Model Context Protocol) implementations"
+readme = "README.md"
+keywords = ["mcp", "hanzo", "ai", "tools", "llm"]
+categories = ["api-bindings", "development-tools"]
+
+[dependencies]
+async-trait = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+thiserror = { workspace = true }

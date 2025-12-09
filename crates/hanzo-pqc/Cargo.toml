@@ -1,8 +1,11 @@
 [package]
-name = "hanzo_pqc"
-version = { workspace = true }
-edition = { workspace = true }
-authors = { workspace = true }
+name = "hanzo-pqc"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Post-quantum cryptography primitives (ML-KEM, ML-DSA, SLH-DSA) for Hanzo ecosystem"
 
 [features]
 default = ["ml-kem", "ml-dsa", "hybrid"]

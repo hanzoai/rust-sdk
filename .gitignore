@@ -50,3 +50,8 @@ junit.xml
 # Release artifacts
 dist/
 release/
+
+# Bundled binaries
+crates/hanzo-tools-runner/hanzo-tools-runner-resources/deno
+crates/hanzo-tools-runner/hanzo-tools-runner-resources/uv
+crates/hanzo-tools-runner/hanzo-tools-runner-resources/*.zip

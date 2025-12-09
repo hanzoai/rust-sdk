@@ -1,8 +1,11 @@
 [package]
-name = "hanzo_config"
+name = "hanzo-config"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Configuration management for Hanzo services"
 
 [dependencies]
 serde = { workspace = true, features = ["derive"] }

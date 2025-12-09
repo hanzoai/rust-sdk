@@ -1,0 +1,25 @@
+[package]
+name = "hanzo-agents"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+description = "Specialized AI agents for development workflows - architect, CTO, code reviewer"
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+# Internal crates
+hanzo-agent = { workspace = true }
+hanzo-mcp = { workspace = true }
+futures = { workspace = true }
+
+# Core
+tokio = { workspace = true }
+async-trait = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
+tokio-test = { workspace = true }
