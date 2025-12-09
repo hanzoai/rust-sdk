@@ -4,7 +4,7 @@
 use crate::{PqcError, Result};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use zeroize::{Zeroize, ZeroizeOnDrop};
+use zeroize::Zeroize;
 
 /// KEM algorithms supported
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -47,6 +47,7 @@ impl KemAlgorithm {
 
     /// Get the saorsa_pqc ML-KEM variant
     #[cfg(feature = "ml-kem")]
+    #[allow(dead_code)] // Future use when ML-KEM integration is complete
     pub(crate) fn to_saorsa_variant(&self) -> saorsa_pqc::MlKemVariant {
         match self {
             Self::MlKem512 => saorsa_pqc::MlKemVariant::MlKem512,

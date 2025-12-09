@@ -6,7 +6,6 @@ use crate::{
     kem::{DecapsulationKey, EncapsulationKey, Kem, KemAlgorithm},
     Result,
 };
-use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
 /// Hybrid mode configuration

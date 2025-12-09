@@ -1,3 +1,7 @@
+//! Core message types for Hanzo communication
+//! Public API - some items may not have internal consumers
+#![allow(dead_code)]
+
 pub mod hanzo_message;
 pub mod hanzo_message_encryption;
 pub mod hanzo_message_error;

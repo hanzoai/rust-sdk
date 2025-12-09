@@ -10,6 +10,7 @@ use std::sync::Arc;
 
 /// Planner Agent for task breakdown and implementation planning
 pub struct PlannerAgent {
+    #[allow(dead_code)] // Reserved for tool execution integration
     tool_registry: Arc<ToolRegistry>,
 }
 
@@ -102,7 +103,7 @@ impl SpecializedAgent for PlannerAgent {
         ]
     }
 
-    async fn run(&self, input: &str, config: &AgentConfig) -> Result<AgentOutput> {
+    async fn run(&self, input: &str, _config: &AgentConfig) -> Result<AgentOutput> {
         tracing::info!("Planner agent processing: {}", input);
 
         Ok(AgentOutput {

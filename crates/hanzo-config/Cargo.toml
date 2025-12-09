@@ -19,3 +19,5 @@ num_cpus = "1.16"
 [dev-dependencies]
 tokio = { workspace = true, features = ["full", "test-util"] }
 tempfile = { workspace = true }
+[lints]
+workspace = true

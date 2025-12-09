@@ -3,13 +3,14 @@
 use crate::prompts::ARCHITECT_PROMPT;
 use crate::tools::ToolRegistry;
 use crate::traits::{
-    AgentConfig, AgentError, AgentOutput, Result, SpecializedAgent, ToolCall, ToolDefinition, Usage,
+    AgentConfig, AgentError, AgentOutput, Result, SpecializedAgent, ToolDefinition, Usage,
 };
 use async_trait::async_trait;
 use std::sync::Arc;
 
 /// Architect Agent for system design and architectural decisions
 pub struct ArchitectAgent {
+    #[allow(dead_code)] // Reserved for tool execution integration
     tool_registry: Arc<ToolRegistry>,
 }
 
@@ -88,7 +89,7 @@ impl SpecializedAgent for ArchitectAgent {
         ]
     }
 
-    async fn run(&self, input: &str, config: &AgentConfig) -> Result<AgentOutput> {
+    async fn run(&self, input: &str, _config: &AgentConfig) -> Result<AgentOutput> {
         // This is a placeholder implementation
         // The actual implementation would use hanzo-agent's Runner
         // with the configured model and tools

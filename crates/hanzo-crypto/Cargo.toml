@@ -66,3 +66,5 @@ zeroize = { version = "1.8", features = ["derive"] }
 tokio-test = "0.4"
 criterion = "0.5"
 proptest = "1.0"
+[lints]
+workspace = true

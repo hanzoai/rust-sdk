@@ -82,7 +82,7 @@ impl Prompt {
     /// Of note, priority value must be between 0-100, where higher is greater priority
     pub fn add_content(&mut self, content: String, prompt_type: SubPromptType, priority_value: u8) {
         let capped_priority_value = std::cmp::min(priority_value, 100);
-        let sub_prompt = SubPrompt::Content(prompt_type, content, capped_priority_value as u8);
+        let sub_prompt = SubPrompt::Content(prompt_type, content, capped_priority_value);
         self.add_sub_prompt(sub_prompt);
     }
 
@@ -107,7 +107,7 @@ impl Prompt {
                 (asset_type, file_content, file_name)
             })
             .collect();
-        let sub_prompt = SubPrompt::Omni(prompt_type, content, assets, capped_priority_value as u8);
+        let sub_prompt = SubPrompt::Omni(prompt_type, content, assets, capped_priority_value);
         self.add_sub_prompt(sub_prompt);
     }
 
@@ -165,7 +165,7 @@ impl Prompt {
     ) {
         let capped_priority_value = std::cmp::min(priority_value, 100);
         let sub_prompt =
-            SubPrompt::ToolAvailable(prompt_type, tool_content, capped_priority_value as u8);
+            SubPrompt::ToolAvailable(prompt_type, tool_content, capped_priority_value);
         self.add_sub_prompt(sub_prompt);
     }
 
@@ -200,7 +200,7 @@ impl Prompt {
             asset_type,
             asset_content,
             asset_detail,
-            capped_priority_value as u8,
+            capped_priority_value,
         );
         self.add_sub_prompt(sub_prompt);
     }
@@ -212,7 +212,7 @@ impl Prompt {
         let sub_prompt = SubPrompt::FunctionCall(
             SubPromptType::Assistant,
             function_call,
-            capped_priority_value as u8,
+            capped_priority_value,
         );
 
         self.add_sub_prompt(sub_prompt);
@@ -229,7 +229,7 @@ impl Prompt {
         let sub_prompt = SubPrompt::FunctionCallResponse(
             SubPromptType::Function,
             function_call_response,
-            capped_priority_value as u8,
+            capped_priority_value,
         );
         self.add_sub_prompt(sub_prompt);
     }
@@ -306,7 +306,7 @@ impl Prompt {
         sub_prompts: Vec<SubPrompt>,
         new_priority: u8,
     ) {
-        let capped_priority_value = std::cmp::min(new_priority, 100) as u8;
+        let capped_priority_value = std::cmp::min(new_priority, 100);
         let mut updated_sub_prompts = Vec::new();
         for mut sub_prompt in sub_prompts {
             match &mut sub_prompt {
@@ -329,11 +329,11 @@ impl Prompt {
     /// Note: The last message in the history is not added.
     /// Of note, priority value must be between 0-100.
     pub fn add_step_history(&mut self, history: Vec<HanzoMessage>, priority_value: u8) {
-        let capped_priority_value = std::cmp::min(priority_value, 100) as u8;
+        let capped_priority_value = std::cmp::min(priority_value, 100);
         let sub_prompts_list: Vec<SubPrompt> = history
             .iter()
             .take(history.len().saturating_sub(1)) // Skip the last message
-            .filter_map(|step| Some(step.to_prompt()))
+            .map(|step| step.to_prompt())
             .flat_map(|prompt| prompt.sub_prompts.clone())
             .collect();
         self.add_sub_prompts_with_new_priority(sub_prompts_list, capped_priority_value);
@@ -594,7 +594,7 @@ impl Prompt {
                     .and_then(|msg| msg.audios.clone()),
                 tool_calls: None,
             };
-            current_length += token_counter(&[combined_message.clone()]);
+            current_length += token_counter(std::slice::from_ref(&combined_message));
             tiktoken_messages.push(combined_message);
         }
 

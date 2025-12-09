@@ -64,6 +64,11 @@ vectordb = { version = "0.1", optional = true }
 [features]
 default = []
 vector-store = ["dep:vectordb"]
+computer-control = []
+blockchain = []
+file-system = []
+web-search = []
+code-execution = []
 
 # Platform specific
 [target.'cfg(target_os = "macos")'.dependencies]
@@ -83,3 +88,7 @@ path = "src/main.rs"
 [lib]
 name = "hanzo_mcp_server"
 path = "src/lib.rs"
+
+
+[lints]
+workspace = true

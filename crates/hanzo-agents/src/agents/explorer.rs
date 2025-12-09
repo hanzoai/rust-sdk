@@ -10,6 +10,7 @@ use std::sync::Arc;
 
 /// Explorer Agent for codebase exploration and understanding
 pub struct ExplorerAgent {
+    #[allow(dead_code)] // Reserved for tool execution integration
     tool_registry: Arc<ToolRegistry>,
 }
 
@@ -102,7 +103,7 @@ impl SpecializedAgent for ExplorerAgent {
         ]
     }
 
-    async fn run(&self, input: &str, config: &AgentConfig) -> Result<AgentOutput> {
+    async fn run(&self, input: &str, _config: &AgentConfig) -> Result<AgentOutput> {
         tracing::info!("Explorer agent processing: {}", input);
 
         Ok(AgentOutput {

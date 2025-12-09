@@ -10,6 +10,7 @@ use std::sync::Arc;
 
 /// Scientist Agent for research and analysis
 pub struct ScientistAgent {
+    #[allow(dead_code)] // Reserved for tool execution integration
     tool_registry: Arc<ToolRegistry>,
 }
 
@@ -98,7 +99,7 @@ impl SpecializedAgent for ScientistAgent {
         ]
     }
 
-    async fn run(&self, input: &str, config: &AgentConfig) -> Result<AgentOutput> {
+    async fn run(&self, input: &str, _config: &AgentConfig) -> Result<AgentOutput> {
         tracing::info!("Scientist agent processing: {}", input);
 
         Ok(AgentOutput {

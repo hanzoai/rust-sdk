@@ -237,3 +237,113 @@ debug = true
 inherits = "dev"
 opt-level = 1
 debug = 1
+
+# =============================================================================
+# WORKSPACE LINT CONFIGURATION
+#
+# Policy: Prefer fixing code over disabling lints. Use local #[allow()] for
+# specific cases. Global allows here are for consistent style decisions across
+# the workspace, NOT for silencing issues that should be fixed.
+#
+# Categories:
+#   - CORRECTNESS: Never disable - these catch real bugs
+#   - PERF: Warn only - can be expensive to fix, review case by case
+#   - STYLE: Allow some that conflict with project preferences
+# =============================================================================
+
+[workspace.lints.rust]
+# Work-in-progress code may have temporarily unused items
+dead_code = "warn"
+unused = "warn"
+
+[workspace.lints.clippy]
+# -------------------------
+# STYLE: Workspace preferences (allow - consistent project style choice)
+# -------------------------
+
+# Format string style: we prefer explicit format!("{}", x) for clarity in some cases
+uninlined_format_args = "allow"
+
+# We use descriptive module names even if they match parent
+module_inception = "allow"
+
+# Single-match is sometimes clearer than if-let for extensibility
+single_match = "allow"
+
+# Redundant field names can aid readability in some contexts
+redundant_field_names = "allow"
+
+# These are legitimate style choices, not bugs
+new_without_default = "allow"
+too_many_arguments = "allow"
+type_complexity = "allow"
+large_enum_variant = "allow"
+
+# Some conversion patterns are intentional for API clarity
+from_over_into = "allow"
+wrong_self_convention = "allow"
+
+# Allow inherent to_string for types with custom formatting
+inherent_to_string = "allow"
+
+# Allow method names that could conflict with std traits
+should_implement_trait = "allow"
+
+# Enum naming is a project style decision
+enum_variant_names = "allow"
+upper_case_acronyms = "allow"
+
+# These micro-optimizations may hurt readability
+redundant_clone = "allow"
+unnecessary_to_owned = "allow"
+clone_on_copy = "allow"
+
+# Control flow preferences
+if_same_then_else = "allow"
+collapsible_if = "allow"
+nonminimal_bool = "allow"
+match_like_matches_macro = "allow"
+
+# Explicit returns can aid debugging and clarity
+needless_return = "allow"
+let_and_return = "allow"
+
+# Comparison style preferences
+len_without_is_empty = "allow"
+len_zero = "allow"
+bool_comparison = "allow"
+
+# Pointer/reference style - sometimes explicit is clearer
+ptr_arg = "allow"
+op_ref = "allow"
+borrowed_box = "allow"
+needless_borrows_for_generic_args = "allow"
+
+# Lazy eval is fine for most cases
+unnecessary_lazy_evaluations = "allow"
+
+# Auto-deref can be confusing in some contexts
+explicit_auto_deref = "allow"
+
+# Various micro-style preferences
+useless_format = "allow"
+vec_init_then_push = "allow"
+manual_map = "allow"
+format_push_string = "allow"
+redundant_pattern_matching = "allow"
+single_component_path_imports = "allow"
+field_reassign_with_default = "allow"
+unnecessary_unwrap = "allow"
+needless_question_mark = "allow"
+useless_conversion = "allow"
+trim_split_whitespace = "allow"
+while_let_on_iterator = "allow"
+assertions_on_constants = "allow"
+derivable_impls = "allow"
+map_entry = "allow"
+new_ret_no_self = "allow"
+result_unit_err = "allow"
+
+# Copy trait methods - preference for explicit by-ref in some APIs
+trivially_copy_pass_by_ref = "allow"
+copy_iterator = "allow"

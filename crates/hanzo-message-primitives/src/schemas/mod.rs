@@ -1,3 +1,7 @@
+//! Schema definitions for Hanzo messages and protocols
+//! Public API - some items may not have internal consumers
+#![allow(dead_code)]
+
 pub mod agent_network_offering;
 pub mod coinbase_mpc_config;
 pub mod cron_task;

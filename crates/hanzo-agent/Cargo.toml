@@ -31,3 +31,6 @@ tokio-test = { workspace = true }
 criterion = { workspace = true }
 tracing-subscriber = "0.3"
 anyhow = { workspace = true }
+
+[lints]
+workspace = true

@@ -50,3 +50,6 @@ path = "tests/hanzo_message_tests.rs"
 [[test]]
 name = "hanzo_name_tests"
 path = "tests/hanzo_name_tests.rs"
+
+[lints]
+workspace = true

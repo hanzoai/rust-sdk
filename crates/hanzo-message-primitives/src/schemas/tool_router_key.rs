@@ -58,7 +58,7 @@ impl ToolRouterKey {
     }
 
     pub fn serialize_tool_router_keys<S>(
-        tools: &Vec<ToolRouterKey>,
+        tools: &[ToolRouterKey],
         serializer: S,
     ) -> Result<S::Ok, S::Error>
     where
@@ -66,10 +66,7 @@ impl ToolRouterKey {
     {
         let strings: Vec<String> = tools
             .iter()
-            .map(|k| {
-                let s = k.to_string_with_version();
-                s
-            })
+            .map(|k| k.to_string_with_version())
             .collect();
         strings.serialize(serializer)
     }

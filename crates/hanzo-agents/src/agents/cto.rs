@@ -10,6 +10,7 @@ use std::sync::Arc;
 
 /// CTO Agent for technical leadership and code quality guidance
 pub struct CtoAgent {
+    #[allow(dead_code)] // Reserved for tool execution integration
     tool_registry: Arc<ToolRegistry>,
 }
 
@@ -86,7 +87,7 @@ impl SpecializedAgent for CtoAgent {
         ]
     }
 
-    async fn run(&self, input: &str, config: &AgentConfig) -> Result<AgentOutput> {
+    async fn run(&self, input: &str, _config: &AgentConfig) -> Result<AgentOutput> {
         tracing::info!("CTO agent processing: {}", input);
 
         Ok(AgentOutput {

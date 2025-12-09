@@ -267,7 +267,7 @@ impl SubPrompt {
             return 0;
         }
 
-        token_counter(&[completion_message.clone()])
+        token_counter(std::slice::from_ref(completion_message))
     }
 
     // /// Converts a vector resource into a series of subprompts to be used in a prompt

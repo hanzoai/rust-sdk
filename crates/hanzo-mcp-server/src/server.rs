@@ -1,13 +1,14 @@
 use crate::{Config, ToolRegistry};
 use anyhow::Result;
-use jsonrpc_core::{IoHandler, Params, Value};
-use jsonrpc_http_server::{Server, ServerBuilder};
+use jsonrpc_core::{IoHandler, Params};
+use jsonrpc_http_server::ServerBuilder;
 use log::{debug, error, info};
 use serde_json::json;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
 pub struct MCPServer {
+    #[allow(dead_code)] // Reserved for future configuration-based behavior
     config: Config,
     port: u16,
     tools: Arc<RwLock<ToolRegistry>>,
@@ -28,8 +29,7 @@ impl MCPServer {
             Box::pin(async move {
                 debug!("Received initialize request: {:?}", params);
 
-                let tools = tools.read().await;
-                let tool_list = tools.list();
+                let _tools = tools.read().await;
 
                 Ok(json!({
                     "protocolVersion": "2024-11-05",

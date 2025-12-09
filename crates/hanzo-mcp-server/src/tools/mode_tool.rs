@@ -2,7 +2,6 @@
 use crate::tools::personality::{self, ToolPersonality};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ModeToolArgs {

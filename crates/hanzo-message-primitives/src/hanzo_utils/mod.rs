@@ -1,3 +1,7 @@
+//! Utility types and helpers for Hanzo messages
+//! Public API - some items may not have internal consumers
+#![allow(dead_code)]
+
 pub mod encryption;
 pub mod file_encryption;
 pub mod hanzo_logging;

@@ -122,13 +122,16 @@ fn default_shell() -> String {
 #[cfg(windows)]
 const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 
+/// Builder for commands wrapped in shell execution (planned for Windows support)
 #[derive(Clone)]
+#[allow(dead_code)]
 pub struct CommandWrappedInShellBuilder {
     program: String,
     args: Option<Vec<String>>,
     envs: Option<HashMap<String, String>>,
 }
 
+#[allow(dead_code)]
 impl CommandWrappedInShellBuilder {
     pub fn new<S: AsRef<OsStr>>(program: S) -> Self {
         Self {

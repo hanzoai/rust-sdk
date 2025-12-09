@@ -4,7 +4,7 @@
 use crate::{PqcError, Result};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use zeroize::{Zeroize, ZeroizeOnDrop};
+use zeroize::Zeroize;
 
 /// Signature algorithms supported
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -67,6 +67,7 @@ impl SignatureAlgorithm {
 
     /// Get the saorsa ML-DSA variant
     #[cfg(feature = "ml-dsa")]
+    #[allow(dead_code)] // Future use when ML-DSA integration is complete
     pub(crate) fn to_saorsa_variant(&self) -> Option<saorsa_pqc::MlDsaVariant> {
         match self {
             Self::MlDsa44 => Some(saorsa_pqc::MlDsaVariant::MlDsa44),
@@ -237,7 +238,7 @@ impl Signature for Ed25519Sig {
             ));
         }
 
-        use ed25519_dalek::{SigningKey as Ed25519SigningKey, VerifyingKey as Ed25519VerifyingKey};
+        use ed25519_dalek::SigningKey as Ed25519SigningKey;
         use rand::{rngs::OsRng, Rng};
 
         let mut csprng = OsRng;

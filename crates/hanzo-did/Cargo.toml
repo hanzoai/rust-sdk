@@ -40,3 +40,5 @@ ipfs = ["ipfs-api-backend-hyper"]
 
 [dev-dependencies]
 tokio-test = { workspace = true }
+[lints]
+workspace = true

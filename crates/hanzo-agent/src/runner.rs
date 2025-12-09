@@ -411,7 +411,8 @@ enum NextStep {
     /// Run the agent again (after tool execution)
     RunAgain,
 
-    /// Handoff to another agent
+    /// Handoff to another agent (planned for multi-agent workflows)
+    #[allow(dead_code)]
     Handoff(Agent),
 }
 

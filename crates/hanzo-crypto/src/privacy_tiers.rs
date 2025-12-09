@@ -2,7 +2,6 @@
 //! Implements tiered privacy from open data to GPU TEE-I/O
 
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 /// Privacy tier definitions
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]

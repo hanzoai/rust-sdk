@@ -1,5 +1,4 @@
 #[cfg(test)]
-
 /// Create a temporary directory and set the NODE_STORAGE_PATH environment variable
 /// Return the TempDir object (required so it doesn't get deleted when the function returns)
 pub fn testing_create_tempdir_and_set_env_var() -> tempfile::TempDir {
@@ -19,7 +18,7 @@ pub fn testing_create_tempdir_and_set_env_var() -> tempfile::TempDir {
 
     // Check if the directory exists, and create it if it doesn't
     if !hanzo_path.as_path().exists() {
-        let _ = fs::create_dir_all(&hanzo_path.as_path()).map_err(|e| {
+        let _ = fs::create_dir_all(hanzo_path.as_path()).map_err(|e| {
             eprintln!(
                 "Failed to create directory {}: {}",
                 hanzo_path.as_path().display(),

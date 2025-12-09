@@ -1,3 +1,6 @@
+// Tool category constants are defined for future personality-based tool filtering
+#![allow(dead_code)]
+
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 /// Enhanced tool personality system with 117+ programmer personalities
