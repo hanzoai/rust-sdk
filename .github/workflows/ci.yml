@@ -59,7 +59,7 @@ jobs:
           - stable
           - beta
           - nightly
-          - 1.75.0  # MSRV (workspace.lints requires 1.74+)
+          - 1.85.0  # MSRV (rmcp 0.8+ uses edition2024, requires Rust 1.85+)
         exclude:
           # Exclude some combinations to save CI time
           - os: macos-latest
