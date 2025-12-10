@@ -80,7 +80,7 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/hanzoai/rust-sdk"
 homepage = "https://hanzo.ai"
 documentation = "https://docs.rs/hanzo-*"
-rust-version = "1.75"
+rust-version = "1.85"
 
 [workspace.dependencies]
 # Async runtime
