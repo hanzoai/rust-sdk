@@ -151,11 +151,9 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Run integration tests
-        run: |
-          cd crates/hanzo-kbs
-          cargo test --features integration-tests
-          cd ../hanzo-pqc  
-          cargo test --features integration-tests
+        # Only test crates that are part of the workspace
+        # hanzo-kbs is excluded as it has external dependencies (see Cargo.toml)
+        run: cargo test --features integration-tests -p hanzo-pqc
 
   # Dependency check
   deps:

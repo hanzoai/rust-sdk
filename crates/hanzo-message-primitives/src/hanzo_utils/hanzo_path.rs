@@ -5,6 +5,30 @@ use std::fmt;
 use std::hash::Hash;
 use std::path::{Path, PathBuf};
 
+/// Cross-platform path conversion helper
+/// Uses os_path on native platforms, falls back to PathBuf::from on WASM
+#[cfg(not(target_arch = "wasm32"))]
+fn to_pathbuf(path: &str) -> PathBuf {
+    os_path::OsPath::from(path).to_pathbuf()
+}
+
+#[cfg(target_arch = "wasm32")]
+fn to_pathbuf(path: &str) -> PathBuf {
+    PathBuf::from(path)
+}
+
+/// Cross-platform path string conversion
+/// Uses os_path on native platforms, returns input on WASM
+#[cfg(not(target_arch = "wasm32"))]
+pub fn normalize_path_str(path: &str) -> String {
+    os_path::OsPath::from(path).to_string()
+}
+
+#[cfg(target_arch = "wasm32")]
+pub fn normalize_path_str(path: &str) -> String {
+    path.to_string()
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct HanzoPath {
     pub path: PathBuf,
@@ -14,7 +38,7 @@ impl HanzoPath {
     /// Private helper method to create a HanzoPath from a &str.
     pub fn new(path: &str) -> Self {
         let base_path = Self::base_path();
-        let path_buf = os_path::OsPath::from(path).to_pathbuf(); // PathBuf::from(path);
+        let path_buf = to_pathbuf(path);
 
         let final_path = if path_buf.is_absolute() {
             if path_buf.starts_with(&base_path) {
@@ -231,7 +255,7 @@ mod tests {
         );
         assert_eq!(
             path.relative_path(),
-            os_path::OsPath::from("word_files/christmas.docx").to_string()
+            normalize_path_str("word_files/christmas.docx")
         );
     }
 
@@ -247,7 +271,7 @@ mod tests {
         );
         assert_eq!(
             path.relative_path(),
-            os_path::OsPath::from("word_files/christmas.docx").to_string()
+            normalize_path_str("word_files/christmas.docx")
         );
     }
 
@@ -258,7 +282,7 @@ mod tests {
         let absolute_outside = HanzoPath::from_string("/some/other/path".to_string());
         assert_eq!(
             absolute_outside.relative_path(),
-            os_path::OsPath::from("some/other/path").to_string()
+            normalize_path_str("some/other/path")
         );
     }
 
@@ -362,8 +386,7 @@ mod tests {
 
         // Check if the serialized output matches the expected relative path
         let serialized_path_str =
-            serde_json::to_string(&os_path::OsPath::from("word_files/christmas.docx").to_string())
-                .unwrap();
+            serde_json::to_string(&normalize_path_str("word_files/christmas.docx")).unwrap();
 
         assert_eq!(serialized_path, serialized_path_str);
     }

@@ -8,6 +8,10 @@ repository = "https://github.com/hanzoai/hanzo-node"
 homepage = "https://hanzo.ai"
 description = "Message primitives for Hanzo AI platform"
 
+# Make this a standalone crate (not part of parent workspace)
+# This crate is disabled in CI due to external dependencies
+[workspace]
+
 [dependencies]
 serde_json = "1.0.117"
 chacha20poly1305 = "0.7.1"

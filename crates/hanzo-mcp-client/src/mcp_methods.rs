@@ -582,6 +582,7 @@ pub mod tests_mcp_manager {
     use serde_json::json;
 
     #[tokio::test]
+    #[ignore = "requires npx and external MCP server - run manually with --ignored"]
     async fn test_run_tool_via_command() {
         let params = json!({
             "a": 1,
@@ -607,6 +608,7 @@ pub mod tests_mcp_manager {
     }
 
     #[tokio::test]
+    #[ignore = "requires npx and external MCP server - run manually with --ignored"]
     async fn test_run_tool_via_sse() {
         let mut envs = HashMap::new();
         envs.insert("PORT".to_string(), "8000".to_string());
@@ -658,6 +660,7 @@ pub mod tests_mcp_manager {
     }
 
     #[tokio::test]
+    #[ignore = "requires npx and external MCP server - run manually with --ignored"]
     async fn test_list_tools_via_command() {
         let result = list_tools_via_command(
             "npx -y @modelcontextprotocol/server-everything@2025.9.12",
@@ -704,6 +707,7 @@ pub mod tests_mcp_manager {
     }
 
     #[tokio::test]
+    #[ignore = "requires npx and external MCP server - run manually with --ignored"]
     async fn test_list_tools_via_sse() {
         let mut envs = HashMap::new();
         envs.insert("PORT".to_string(), "8001".to_string());
@@ -775,6 +779,7 @@ pub mod tests_mcp_manager {
     }
 
     #[tokio::test]
+    #[ignore = "requires npx and external MCP server - run manually with --ignored"]
     async fn test_list_tools_via_http() {
         let mut envs = HashMap::new();
         envs.insert("PORT".to_string(), "8002".to_string());
@@ -839,6 +844,7 @@ pub mod tests_mcp_manager {
     }
 
     #[tokio::test]
+    #[ignore = "requires npx and external MCP server - run manually with --ignored"]
     async fn test_run_tool_via_http() {
         let mut envs = HashMap::new();
         envs.insert("PORT".to_string(), "8003".to_string());

@@ -48,6 +48,29 @@ members = [
     # "crates/hanzo-simulation",
     # "crates/hanzo-sqlite",
 ]
+# Explicitly exclude disabled crates that may have Cargo.toml files
+exclude = [
+    "crates/hanzo-kbs",
+    "crates/hanzo-messages",
+    "crates/hanzo-embedding",
+    "crates/hanzo-llm",
+    "crates/hanzo-hmm",
+    "crates/hanzo-identity",
+    "crates/hanzo-libp2p",
+    "crates/hanzo-libp2p-relayer",
+    "crates/hanzo-compute",
+    "crates/hanzo-database",
+    "crates/hanzo-ai-format",
+    "crates/hanzo-wasm",
+    "crates/hanzo-tools-runner",
+    "crates/hanzo-mining",
+    "crates/hanzo-agent-marketplace",
+    "crates/hanzo-baml",
+    "crates/hanzo-db",
+    "crates/hanzo-simulation",
+    "crates/hanzo-sqlite",
+    "crates/hanzo-crypto-identities",
+]
 
 [workspace.package]
 version = "0.1.0"

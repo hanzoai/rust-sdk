@@ -17,6 +17,8 @@ fips-mode = []
 gpu-cc = []
 tee-io = []
 cpu-tee = []
+# CI-specific feature to enable all tests
+integration-tests = ["ml-kem", "ml-dsa", "hybrid", "fips-mode"]
 
 [dependencies]
 # Core PQC implementation - using latest version

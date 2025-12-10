@@ -1,0 +1,25 @@
+# Cargo audit configuration
+# See https://rustsec.org/advisories/ for details
+
+[advisories]
+# Vulnerabilities to ignore - these are transitive dependencies that cannot be easily upgraded
+ignore = [
+    # object_store 0.6.1 - AWS WebIdentityToken exposure in log files
+    # Pulled in by vectordb -> lance. Upgrade blocked by lance compatibility.
+    # Risk: Only affects AWS WebIdentity auth in error conditions
+    "RUSTSEC-2024-0358",
+
+    # ring 0.16.20 - AES functions may panic with overflow checking
+    # Pulled in by multiple transitive deps (reqwest, rustls-old, hpke).
+    # Risk: Only affects QUIC protocol or 64GB+ single-chunk encryption (not our use case)
+    "RUSTSEC-2025-0009",
+
+    # rustls 0.20.9 - complete_io infinite loop on close_notify during handshake
+    # Pulled in by reqwest 0.11.x (used by object_store)
+    # Risk: Only affects rustls::Stream, not tokio-rustls we use
+    "RUSTSEC-2024-0336",
+]
+
+[output]
+# Show informational advisories (unmaintained crates, etc)
+informational_warnings = ["unmaintained", "unsound", "notice"]

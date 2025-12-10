@@ -3,6 +3,10 @@ use utoipa::ToSchema;
 
 use super::{hanzo_path::HanzoPath, search_mode::VectorSearchMode};
 
+// normalize_path_str is only used in tests
+#[cfg(test)]
+use super::hanzo_path::normalize_path_str;
+
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, ToSchema)]
 pub struct MinimalJobScope {
     pub vector_fs_items: Vec<HanzoPath>, // TODO: rename this to non-vector-fs-items
@@ -85,11 +89,11 @@ mod tests {
         assert_eq!(deserialized.vector_fs_items.len(), 2);
         assert_eq!(
             deserialized.vector_fs_items[0].relative_path(),
-            os_path::OsPath::from("path/to/file1").to_string()
+            normalize_path_str("path/to/file1")
         );
         assert_eq!(
             deserialized.vector_fs_items[1].relative_path(),
-            os_path::OsPath::from("path/to/file2").to_string()
+            normalize_path_str("path/to/file2")
         );
         assert_eq!(deserialized.vector_fs_folders.len(), 1);
         assert_eq!(
@@ -116,12 +120,12 @@ mod tests {
         assert_eq!(deserialized.vector_fs_items.len(), 1);
         assert_eq!(
             deserialized.vector_fs_items[0].relative_path(),
-            os_path::OsPath::from("path/to/file1").to_string()
+            normalize_path_str("path/to/file1")
         );
         assert_eq!(deserialized.vector_fs_folders.len(), 1);
         assert_eq!(
             deserialized.vector_fs_folders[0].relative_path(),
-            os_path::OsPath::from("My Files (Private)").to_string()
+            normalize_path_str("My Files (Private)")
         );
         assert_eq!(
             deserialized.vector_search_mode,
