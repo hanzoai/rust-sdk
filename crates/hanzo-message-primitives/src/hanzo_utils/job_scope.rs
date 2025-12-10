@@ -50,10 +50,14 @@ impl Default for MinimalJobScope {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::hanzo_utils::test_utils::testing_create_tempdir_and_set_env_var;
     use serde_json::json;
+    use serial_test::serial;
 
     #[test]
+    #[serial]
     fn test_deserialize_minimal_job_scope() {
+        let _dir = testing_create_tempdir_and_set_env_var();
         let json_data = json!({
             "vector_fs_items": [],
             "vector_fs_folders": ["/My Files (Private)"],
@@ -76,7 +80,9 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn test_deserialize_minimal_job_scope_with_string_items() {
+        let _dir = testing_create_tempdir_and_set_env_var();
         let json_data = json!({
             "vector_fs_items": ["/path/to/file1", "/path/to/file2"],
             "vector_fs_folders": [{"path": "/My Files (Private)"}],
@@ -107,7 +113,9 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn test_deserialize_minimal_job_scope_without_vector_search_mode() {
+        let _dir = testing_create_tempdir_and_set_env_var();
         let json_data = json!({
             "vector_fs_items": ["/path/to/file1"],
             "vector_fs_folders": ["/My Files (Private)"]

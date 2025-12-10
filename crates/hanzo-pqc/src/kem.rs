@@ -126,6 +126,7 @@ impl Default for MlKem {
     }
 }
 
+#[cfg(feature = "ml-kem")]
 impl MlKem {
     pub fn new() -> Self {
         Self {

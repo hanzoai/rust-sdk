@@ -20,6 +20,4 @@ ignore = [
     "RUSTSEC-2024-0336",
 ]
 
-[output]
-# Show informational advisories (unmaintained crates, etc)
-informational_warnings = ["unmaintained", "unsound", "notice"]
+# Note: Output formatting options removed - not supported in all cargo-audit versions

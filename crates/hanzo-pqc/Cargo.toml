@@ -64,5 +64,10 @@ proptest = "1.0"
 [[bench]]
 name = "pqc_benchmarks"
 harness = false
+
+[[example]]
+name = "basic_usage"
+required-features = ["ml-kem", "ml-dsa", "hybrid"]
+
 [lints]
 workspace = true

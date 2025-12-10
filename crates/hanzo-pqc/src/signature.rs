@@ -148,6 +148,7 @@ impl Default for MlDsa {
     }
 }
 
+#[cfg(feature = "ml-dsa")]
 impl MlDsa {
     pub fn new() -> Self {
         Self {
