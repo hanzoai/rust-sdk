@@ -171,11 +171,12 @@ jobs:
         run: |
           cd crates/hanzo-pqc
           cargo publish --dry-run
-      - name: Verify hanzo-kbs
-        if: needs.prepare.outputs.publish_kbs == 'true'
-        run: |
-          cd crates/hanzo-kbs
-          cargo publish --dry-run
+      # hanzo-kbs is a standalone workspace with external deps - skip for now
+      # - name: Verify hanzo-kbs
+      #   if: needs.prepare.outputs.publish_kbs == 'true'
+      #   run: |
+      #     cd crates/hanzo-kbs
+      #     cargo publish --dry-run
 
   # Generate changelog
   changelog:
@@ -229,11 +230,12 @@ jobs:
           cargo publish --no-verify
           sleep 30
       
-      - name: Publish hanzo-kbs
-        if: needs.prepare.outputs.publish_kbs == 'true'
-        run: |
-          cd crates/hanzo-kbs
-          cargo publish --no-verify
+      # hanzo-kbs is a standalone workspace with external deps - skip for now
+      # - name: Publish hanzo-kbs
+      #   if: needs.prepare.outputs.publish_kbs == 'true'
+      #   run: |
+      #     cd crates/hanzo-kbs
+      #     cargo publish --no-verify
 
   # Create GitHub Release
   release:
