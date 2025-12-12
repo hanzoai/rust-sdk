@@ -272,8 +272,8 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Build documentation
         run: |
-          cargo doc --all --no-deps --all-features
-          echo '<meta http-equiv="refresh" content="0; url=hanzo_kbs/index.html">' > target/doc/index.html
+          cargo doc --workspace --no-deps --document-private-items
+          echo '<meta http-equiv="refresh" content="0; url=hanzo_pqc/index.html">' > target/doc/index.html
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
