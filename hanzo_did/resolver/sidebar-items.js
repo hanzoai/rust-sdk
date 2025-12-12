@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["DocumentMetadata","ResolutionMetadata","ResolveOptions","ResolveResult","UniversalResolver"],"trait":["DIDResolver"]};

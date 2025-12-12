@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["McpServerSource"],"fn":["default_true","generate_uuid","generate_uuid_prefix"],"struct":["McpClientConfig","McpServerConfig","McpToolInfo"]};

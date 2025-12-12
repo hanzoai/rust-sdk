@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["PrivacyTier"],"struct":["CapabilityMatrix","CapabilityToken","KeyReleasePolicy","RuntimeRequirements","VendorCapabilities"]};

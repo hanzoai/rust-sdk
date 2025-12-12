@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["MessageType","ToolStatusType","WSMessageType","WebSocketManagerError","WidgetMetadata"],"struct":["PaymentMetadata","ToolMetadata","ToolStatus","WSMessagePayload","WSMetadata"],"trait":["WSUpdateHandler"],"type":["MessageQueue"]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["agents","prelude","prompts","registry","tools","traits"]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["JsonValue"],"mod":["did","document","error","proof","resolver","service","verification_method"]};

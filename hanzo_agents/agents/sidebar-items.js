@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["architect","cto","explorer","planner","reviewer","scientist"]};

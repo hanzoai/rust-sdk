@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["config","protocol","server","tools"],"struct":["ToolRegistry","ToolResult"],"trait":["MCPTool"]};

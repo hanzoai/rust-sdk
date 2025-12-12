@@ -1,0 +1,9 @@
+(function() {
+    var implementors = Object.fromEntries([["hanzo_did",[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.92.0/core/str/traits/trait.FromStr.html\" title=\"trait core::str::traits::FromStr\">FromStr</a> for <a class=\"enum\" href=\"hanzo_did/did/enum.Network.html\" title=\"enum hanzo_did::did::Network\">Network</a>"],["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.92.0/core/str/traits/trait.FromStr.html\" title=\"trait core::str::traits::FromStr\">FromStr</a> for <a class=\"struct\" href=\"hanzo_did/did/struct.DID.html\" title=\"struct hanzo_did::did::DID\">DID</a>"]]],["hanzo_message_primitives",[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.92.0/core/str/traits/trait.FromStr.html\" title=\"trait core::str::traits::FromStr\">FromStr</a> for <a class=\"enum\" href=\"hanzo_message_primitives/schemas/inbox_permission/enum.InboxPermission.html\" title=\"enum hanzo_message_primitives::schemas::inbox_permission::InboxPermission\">InboxPermission</a>"],["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.92.0/core/str/traits/trait.FromStr.html\" title=\"trait core::str::traits::FromStr\">FromStr</a> for <a class=\"enum\" href=\"hanzo_message_primitives/schemas/llm_providers/serialized_llm_provider/enum.LLMProviderInterface.html\" title=\"enum hanzo_message_primitives::schemas::llm_providers::serialized_llm_provider::LLMProviderInterface\">LLMProviderInterface</a>"]]]]);
+    if (window.register_implementors) {
+        window.register_implementors(implementors);
+    } else {
+        window.pending_implementors = implementors;
+    }
+})()
+//{"start":57,"fragment_lengths":[557,831]}

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["LlmMessageError"],"struct":["DetailedFunctionCall","FunctionDetails","FunctionParameters","LlmMessage","ToolCall","ToolCallFunction"]};

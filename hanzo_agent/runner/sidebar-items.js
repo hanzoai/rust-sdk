@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["DEFAULT_MAX_TURNS"],"enum":["NextStep"],"struct":["RunConfig","Runner"]};

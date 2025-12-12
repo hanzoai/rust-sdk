@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["DefaultKem","DefaultSig","RngSource"],"struct":["MigrationConfig","PqcConfig"]};

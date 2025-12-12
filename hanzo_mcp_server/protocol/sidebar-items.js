@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["PROTOCOL_VERSION"],"enum":["Content"],"struct":["ClientCapabilities","ClientInfo","InitializeParams","MCPError","MCPRequest","MCPResponse","ServerCapabilities","ToolCallParams","ToolDefinition"]};

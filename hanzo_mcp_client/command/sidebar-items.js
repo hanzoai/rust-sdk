@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["default_shell","get_base_os_envs","get_envs"],"static":["BASE_OS_ENVS","DEFAULT_SHELL","ENVS"],"struct":["CommandWrappedInShellBuilder"]};

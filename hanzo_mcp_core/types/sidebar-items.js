@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["ContentBlock","McpTransport"],"struct":["ClientInfo","LoggingCapability","PromptArgument","PromptDefinition","PromptsCapability","ResourceDefinition","ResourcesCapability","ServerCapabilities","ServerInfo","ToolDefinition","ToolResult","ToolsCapability"]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Network","Price"],"struct":["EIP712","ERC20Asset","ERC20TokenAmount","FacilitatorConfig","PaymentAuthorization","PaymentPayload","PaymentPayloadData","PaymentRequirements"],"type":["Money"]};

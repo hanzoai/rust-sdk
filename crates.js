@@ -1,0 +1,2 @@
+window.ALL_CRATES = ["hanzo_agent","hanzo_agents","hanzo_config","hanzo_crypto","hanzo_did","hanzo_mcp","hanzo_mcp_client","hanzo_mcp_core","hanzo_mcp_server","hanzo_message_primitives","hanzo_pqc"];
+//{"start":21,"fragment_lengths":[13,15,15,15,12,12,19,17,19,27,12]}

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["AgentError"],"struct":["AgentConfig","AgentOutput","ToolCall","ToolDefinition","Usage"],"trait":["SpecializedAgent"],"type":["Result"]};

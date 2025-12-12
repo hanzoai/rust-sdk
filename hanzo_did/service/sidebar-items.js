@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["ServiceEndpoint","ServiceType"],"struct":["Service"]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["McpServerSource"],"mod":["client","command","error","mcp_methods","utils"],"struct":["CalledFunction","McpClient","McpClientConfig","McpResourceInfo","McpServerConfig","McpToolInfo","ResourceDefinition","ToolCallbackWithTool","ToolDefinition","ToolResult"],"type":["ToolCallback"]};

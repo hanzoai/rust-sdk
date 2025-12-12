@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["list_resources_via_command","list_resources_via_http","list_resources_via_sse","list_tools_via_command","list_tools_via_http","list_tools_via_sse","read_resource_via_command","read_resource_via_http","read_resource_via_sse","run_tool_via_command","run_tool_via_http","run_tool_via_sse"],"type":["Result"]};
