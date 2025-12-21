@@ -1,0 +1,48 @@
+[package]
+name = "hanzo-guard"
+version = "0.1.0"
+edition = "2021"
+authors = ["Hanzo AI <dev@hanzo.ai>"]
+description = "LLM I/O sanitization and safety layer - the 'condom' for AI"
+license = "MIT"
+repository = "https://github.com/hanzoai/guard"
+keywords = ["llm", "safety", "sanitization", "guardrails", "security"]
+categories = ["development-tools", "web-programming"]
+
+[features]
+default = ["pii", "injection", "rate-limit"]
+pii = ["regex"]
+injection = []
+rate-limit = ["governor"]
+content-filter = ["reqwest"]
+audit = ["tracing"]
+full = ["pii", "injection", "rate-limit", "content-filter", "audit"]
+
+[dependencies]
+# Core
+thiserror = "2.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+async-trait = "0.1"
+tokio = { version = "1", features = ["full"] }
+
+# PII detection
+regex = { version = "1.10", optional = true }
+
+# Rate limiting
+governor = { version = "0.8", optional = true }
+
+# Content filter (calls to zen-guard API)
+reqwest = { version = "0.12", features = ["json"], optional = true }
+
+# Audit logging
+tracing = { version = "0.1", optional = true }
+
+# UUID for request tracking
+uuid = { version = "1.0", features = ["v4", "serde"] }
+
+# Timestamps
+chrono = { version = "0.4", features = ["serde"] }
+
+[dev-dependencies]
+tokio-test = "0.4"

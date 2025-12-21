@@ -17,6 +17,10 @@ members = [
     # Core - Configuration
     "crates/hanzo-config",           # Configuration management
 
+    # Security & Safety
+    "crates/hanzo-guard",            # LLM I/O sanitization - the "condom" for AI
+    "crates/hanzo-extract",          # Content extraction with sanitization
+
     # AI/ML - Agents (SHARED FOR DEV/NODE INTEGRATION)
     "crates/hanzo-agent",            # Agent framework - key for tool calling
     "crates/hanzo-mcp-core",         # MCP core traits and types
@@ -164,6 +168,9 @@ warp = "0.3"
 r2d2 = "0.8"
 r2d2_sqlite = "0.25"
 
+# Rate limiting
+governor = "0.8"
+
 # HTTP/API
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 axum = "0.7"
@@ -232,6 +239,9 @@ hanzo-database = { path = "./crates/hanzo-database" }
 hanzo-ai-format = { path = "./crates/hanzo-ai-format" }
 hanzo-embedding = { path = "./crates/hanzo-embedding" }
 hanzo-sqlite = { path = "./crates/hanzo-sqlite" }
+
+# Security & Safety
+hanzo-guard = { path = "./crates/hanzo-guard" }
 
 # AI/ML
 hanzo-agent = { path = "./crates/hanzo-agent" }

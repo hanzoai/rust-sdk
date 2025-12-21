@@ -1,0 +1,45 @@
+[package]
+name = "hanzo-extract"
+version = "0.1.0"
+edition = "2021"
+authors = ["Hanzo AI <dev@hanzo.ai>"]
+description = "Content extraction with built-in sanitization via hanzo-guard"
+license = "MIT"
+repository = "https://github.com/hanzoai/rust-sdk"
+keywords = ["extraction", "pdf", "web", "sanitization", "llm"]
+categories = ["development-tools", "web-programming", "text-processing"]
+
+[features]
+default = ["web", "pdf", "sanitize"]
+web = ["reqwest", "scraper"]
+pdf = ["lopdf"]
+sanitize = ["hanzo-guard"]
+full = ["web", "pdf", "sanitize"]
+
+[dependencies]
+# Core
+thiserror = "2.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+async-trait = "0.1"
+tokio = { version = "1", features = ["full"] }
+
+# Web extraction
+reqwest = { version = "0.12", features = ["json"], optional = true }
+scraper = { version = "0.22", optional = true }
+
+# PDF extraction
+lopdf = { version = "0.34", optional = true }
+
+# Sanitization
+hanzo-guard = { path = "../hanzo-guard", optional = true }
+
+# URL handling
+url = "2.5"
+
+# Text processing
+regex = "1.10"
+unicode-segmentation = "1.10"
+
+[dev-dependencies]
+tokio-test = "0.4"
