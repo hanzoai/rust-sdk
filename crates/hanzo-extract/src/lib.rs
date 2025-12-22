@@ -53,6 +53,9 @@ pub mod pdf;
 #[cfg(feature = "sanitize")]
 pub mod sanitize;
 
+#[cfg(feature = "conversations")]
+pub mod conversations;
+
 pub use config::ExtractorConfig;
 pub use error::{ExtractError, Result};
 pub use result::ExtractResult;

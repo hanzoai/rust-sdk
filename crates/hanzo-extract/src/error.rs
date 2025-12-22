@@ -78,3 +78,9 @@ impl From<lopdf::Error> for ExtractError {
         ExtractError::Pdf(err.to_string())
     }
 }
+
+impl From<serde_json::Error> for ExtractError {
+    fn from(err: serde_json::Error) -> Self {
+        ExtractError::Parse(err.to_string())
+    }
+}
