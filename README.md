@@ -1,19 +1,33 @@
 # Hanzo Rust SDK
 
-Official Rust SDK for Hanzo AI infrastructure, providing secure key management, post-quantum cryptography, and core primitives for building AI applications.
+[![CI](https://github.com/hanzoai/rust-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/hanzoai/rust-sdk/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)](LICENSE)
+
+Official Rust SDK for Hanzo AI infrastructure, providing secure key management, post-quantum cryptography, LLM safety, content extraction, and core primitives for building AI applications.
 
 ## Crates
 
 This workspace contains the following crates:
 
-### [`hanzo-kbs`](crates/hanzo-kbs)
-Key Broker Service (KBS) and Key Management Service (KMS) for confidential computing with privacy tiers from open access to GPU TEE-I/O.
+### AI Safety & Content
 
-### [`hanzo-pqc`](crates/hanzo-pqc)
-Post-Quantum Cryptography implementation supporting ML-KEM, ML-DSA, and hybrid modes with privacy tier optimization.
+| Crate | Description |
+|-------|-------------|
+| [`hanzo-guard`](crates/hanzo-guard) | LLM I/O sanitization with PII redaction, injection detection, rate limiting |
+| [`hanzo-extract`](crates/hanzo-extract) | Content extraction from web/PDF with built-in sanitization |
 
-### [`hanzo-message-primitives`](crates/hanzo-message-primitives) 
-Core message types and schemas for Hanzo AI systems (minimal stub, to be expanded).
+### Security & Cryptography
+
+| Crate | Description |
+|-------|-------------|
+| [`hanzo-kbs`](crates/hanzo-kbs) | Key Broker Service for confidential computing with privacy tiers |
+| [`hanzo-pqc`](crates/hanzo-pqc) | Post-Quantum Cryptography (ML-KEM, ML-DSA, hybrid modes) |
+
+### Core Infrastructure
+
+| Crate | Description |
+|-------|-------------|
+| [`hanzo-message-primitives`](crates/hanzo-message-primitives) | Core message types and schemas for Hanzo AI systems |
 
 ## Getting Started
 
@@ -21,11 +35,53 @@ Add the desired crates to your `Cargo.toml`:
 
 ```toml
 [dependencies]
+hanzo-guard = "0.1"
+hanzo-extract = "0.1"
 hanzo-kbs = "0.1"
 hanzo-pqc = "0.1"
 ```
 
 ## Examples
+
+### LLM Input Sanitization
+
+```rust
+use hanzo_guard::{Guard, GuardConfig, SanitizeResult};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let guard = Guard::new(GuardConfig::default());
+
+    let result = guard.sanitize_input("My SSN is 123-45-6789").await?;
+
+    match result {
+        SanitizeResult::Clean(text) => println!("Clean: {text}"),
+        SanitizeResult::Redacted { text, .. } => println!("Redacted: {text}"),
+        SanitizeResult::Blocked { reason, .. } => println!("Blocked: {reason}"),
+    }
+
+    Ok(())
+}
+```
+
+### Content Extraction
+
+```rust
+use hanzo_extract::{Extractor, WebExtractor};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let extractor = WebExtractor::default();
+
+    // Extract and sanitize web content
+    let result = extractor.extract_sanitized("https://example.com").await?;
+
+    println!("Title: {:?}", result.title);
+    println!("Text: {}", result.text);
+
+    Ok(())
+}
+```
 
 ### Key Management with Privacy Tiers
 
