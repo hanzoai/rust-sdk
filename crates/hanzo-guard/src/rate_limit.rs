@@ -11,11 +11,19 @@ use governor::{Quota, RateLimiter as GovernorLimiter};
 #[cfg(feature = "rate-limit")]
 use std::num::NonZeroU32;
 
+/// Type alias for the Governor rate limiter
+#[cfg(feature = "rate-limit")]
+type InnerLimiter = GovernorLimiter<
+    governor::state::NotKeyed,
+    governor::state::InMemoryState,
+    governor::clock::DefaultClock,
+>;
+
 /// Rate limiter for API requests
 pub struct RateLimiter {
     config: RateLimitConfig,
     #[cfg(feature = "rate-limit")]
-    limiters: Arc<RwLock<HashMap<String, Arc<GovernorLimiter<governor::state::NotKeyed, governor::state::InMemoryState, governor::clock::DefaultClock>>>>>,
+    limiters: Arc<RwLock<HashMap<String, Arc<InnerLimiter>>>>,
 }
 
 impl RateLimiter {
@@ -54,10 +62,7 @@ impl RateLimiter {
 
     /// Get or create a limiter for a user
     #[cfg(feature = "rate-limit")]
-    async fn get_or_create_limiter(
-        &self,
-        user_id: &str,
-    ) -> Arc<GovernorLimiter<governor::state::NotKeyed, governor::state::InMemoryState, governor::clock::DefaultClock>> {
+    async fn get_or_create_limiter(&self, user_id: &str) -> Arc<InnerLimiter> {
         // Try to get existing limiter
         {
             let limiters = self.limiters.read().await;
@@ -75,9 +80,11 @@ impl RateLimiter {
         }
 
         let quota = Quota::per_minute(
-            NonZeroU32::new(self.config.requests_per_minute).unwrap_or(NonZeroU32::new(60).unwrap())
-        ).allow_burst(
-            NonZeroU32::new(self.config.burst_size).unwrap_or(NonZeroU32::new(10).unwrap())
+            NonZeroU32::new(self.config.requests_per_minute)
+                .unwrap_or(NonZeroU32::new(60).unwrap()),
+        )
+        .allow_burst(
+            NonZeroU32::new(self.config.burst_size).unwrap_or(NonZeroU32::new(10).unwrap()),
         );
 
         let limiter = Arc::new(GovernorLimiter::direct(quota));

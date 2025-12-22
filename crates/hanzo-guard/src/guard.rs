@@ -3,7 +3,7 @@
 use crate::audit::AuditLogger;
 use crate::config::GuardConfig;
 use crate::content::ContentFilter;
-use crate::error::{GuardError, Result, SafetyCategory};
+use crate::error::{Result, SafetyCategory};
 use crate::injection::InjectionDetector;
 use crate::pii::PiiDetector;
 use crate::rate_limit::RateLimiter;
@@ -23,6 +23,12 @@ pub struct Guard {
     audit_logger: AuditLogger,
 }
 
+impl Default for Guard {
+    fn default() -> Self {
+        Self::new(GuardConfig::default())
+    }
+}
+
 impl Guard {
     /// Create a new Guard with the given configuration
     pub fn new(config: GuardConfig) -> Self {
@@ -34,11 +40,6 @@ impl Guard {
             audit_logger: AuditLogger::new(config.audit.clone()),
             config,
         }
-    }
-
-    /// Create a Guard with default configuration
-    pub fn default() -> Self {
-        Self::new(GuardConfig::default())
     }
 
     /// Sanitize input before sending to LLM
@@ -76,7 +77,8 @@ impl Guard {
         output: &str,
         context: &GuardContext,
     ) -> Result<SanitizeResult> {
-        self.sanitize(output, Direction::Output, Some(context)).await
+        self.sanitize(output, Direction::Output, Some(context))
+            .await
     }
 
     /// Core sanitization logic
@@ -106,7 +108,13 @@ impl Guard {
                     ),
                     category: SafetyCategory::Jailbreak,
                 };
-                self.audit_logger.log(&ctx, direction, content, &result, start.elapsed().as_millis() as u64);
+                self.audit_logger.log(
+                    &ctx,
+                    direction,
+                    content,
+                    &result,
+                    start.elapsed().as_millis() as u64,
+                );
                 return Ok(result);
             }
         }
@@ -116,7 +124,10 @@ impl Guard {
         let (text, redactions) = if pii_redactions.is_empty() {
             (content.to_string(), vec![])
         } else {
-            (self.pii_detector.redact(content, &pii_redactions), pii_redactions)
+            (
+                self.pii_detector.redact(content, &pii_redactions),
+                pii_redactions,
+            )
         };
 
         // Step 4: Content filtering (if enabled)
@@ -128,7 +139,13 @@ impl Guard {
 
             if let Some((reason, category)) = self.content_filter.should_block(&filter_result) {
                 let result = SanitizeResult::Blocked { reason, category };
-                self.audit_logger.log(&ctx, direction, content, &result, start.elapsed().as_millis() as u64);
+                self.audit_logger.log(
+                    &ctx,
+                    direction,
+                    content,
+                    &result,
+                    start.elapsed().as_millis() as u64,
+                );
                 return Ok(result);
             }
         }
@@ -141,7 +158,13 @@ impl Guard {
         };
 
         // Log audit
-        self.audit_logger.log(&ctx, direction, content, &result, start.elapsed().as_millis() as u64);
+        self.audit_logger.log(
+            &ctx,
+            direction,
+            content,
+            &result,
+            start.elapsed().as_millis() as u64,
+        );
 
         Ok(result)
     }
@@ -253,10 +276,7 @@ mod tests {
     #[tokio::test]
     async fn test_pii_redaction() {
         let guard = Guard::new(GuardConfig::minimal());
-        let result = guard
-            .sanitize_input("My SSN is 123-45-6789")
-            .await
-            .unwrap();
+        let result = guard.sanitize_input("My SSN is 123-45-6789").await.unwrap();
 
         assert!(result.is_modified());
         if let SanitizeResult::Redacted { text, redactions } = result {
@@ -288,9 +308,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_builder() {
-        let guard = Guard::builder()
-            .pii_only()
-            .build();
+        let guard = Guard::builder().pii_only().build();
 
         let result = guard.sanitize_input("test@example.com").await.unwrap();
         assert!(result.is_modified());

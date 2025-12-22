@@ -3,7 +3,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Main configuration for Guard
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct GuardConfig {
     /// PII detection configuration
     pub pii: PiiConfig,
@@ -17,38 +17,56 @@ pub struct GuardConfig {
     pub audit: AuditConfig,
 }
 
-impl Default for GuardConfig {
-    fn default() -> Self {
-        Self {
-            pii: PiiConfig::default(),
-            injection: InjectionConfig::default(),
-            content_filter: ContentFilterConfig::default(),
-            rate_limit: RateLimitConfig::default(),
-            audit: AuditConfig::default(),
-        }
-    }
-}
-
 impl GuardConfig {
     /// Create a new config with all features enabled
     pub fn full() -> Self {
         Self {
-            pii: PiiConfig { enabled: true, ..Default::default() },
-            injection: InjectionConfig { enabled: true, ..Default::default() },
-            content_filter: ContentFilterConfig { enabled: true, ..Default::default() },
-            rate_limit: RateLimitConfig { enabled: true, ..Default::default() },
-            audit: AuditConfig { enabled: true, ..Default::default() },
+            pii: PiiConfig {
+                enabled: true,
+                ..Default::default()
+            },
+            injection: InjectionConfig {
+                enabled: true,
+                ..Default::default()
+            },
+            content_filter: ContentFilterConfig {
+                enabled: true,
+                ..Default::default()
+            },
+            rate_limit: RateLimitConfig {
+                enabled: true,
+                ..Default::default()
+            },
+            audit: AuditConfig {
+                enabled: true,
+                ..Default::default()
+            },
         }
     }
 
     /// Create a minimal config (PII only)
     pub fn minimal() -> Self {
         Self {
-            pii: PiiConfig { enabled: true, ..Default::default() },
-            injection: InjectionConfig { enabled: false, ..Default::default() },
-            content_filter: ContentFilterConfig { enabled: false, ..Default::default() },
-            rate_limit: RateLimitConfig { enabled: false, ..Default::default() },
-            audit: AuditConfig { enabled: false, ..Default::default() },
+            pii: PiiConfig {
+                enabled: true,
+                ..Default::default()
+            },
+            injection: InjectionConfig {
+                enabled: false,
+                ..Default::default()
+            },
+            content_filter: ContentFilterConfig {
+                enabled: false,
+                ..Default::default()
+            },
+            rate_limit: RateLimitConfig {
+                enabled: false,
+                ..Default::default()
+            },
+            audit: AuditConfig {
+                enabled: false,
+                ..Default::default()
+            },
         }
     }
 }

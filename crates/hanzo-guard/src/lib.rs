@@ -72,14 +72,14 @@
 //!                     └──────────────┘
 //! ```
 
+pub mod audit;
 pub mod config;
+pub mod content;
 pub mod error;
 pub mod guard;
-pub mod pii;
 pub mod injection;
-pub mod content;
+pub mod pii;
 pub mod rate_limit;
-pub mod audit;
 pub mod types;
 
 pub use config::GuardConfig;

@@ -1,7 +1,7 @@
 //! PII (Personally Identifiable Information) detection and redaction
 
 use crate::config::PiiConfig;
-use crate::error::Result;
+
 use crate::types::{Redaction, RedactionType};
 
 #[cfg(feature = "pii")]
@@ -211,7 +211,9 @@ impl PiiDetector {
 
     /// Format redaction placeholder
     fn format_redaction(&self, redaction_type: RedactionType) -> String {
-        self.config.redaction_format.replace("{TYPE}", &redaction_type.to_string())
+        self.config
+            .redaction_format
+            .replace("{TYPE}", &redaction_type.to_string())
     }
 }
 
@@ -228,10 +230,7 @@ fn hash_value(value: &str) -> String {
 /// Luhn algorithm for credit card validation
 #[cfg(feature = "pii")]
 fn luhn_check(number: &str) -> bool {
-    let digits: Vec<u32> = number
-        .chars()
-        .filter_map(|c| c.to_digit(10))
-        .collect();
+    let digits: Vec<u32> = number.chars().filter_map(|c| c.to_digit(10)).collect();
 
     if digits.len() < 13 {
         return false;
@@ -295,7 +294,9 @@ mod tests {
         let text = "Contact me at john.doe@example.com for more info";
         let redactions = detector.detect(text);
 
-        assert!(redactions.iter().any(|r| r.redaction_type == RedactionType::Email));
+        assert!(redactions
+            .iter()
+            .any(|r| r.redaction_type == RedactionType::Email));
     }
 
     #[test]

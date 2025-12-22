@@ -11,46 +11,40 @@ pub enum ExtractError {
     /// Network error during fetch
     #[error("Network error: {0}")]
     Network(String),
-    
+
     /// HTTP error response
     #[error("HTTP error {status}: {message}")]
-    Http {
-        status: u16,
-        message: String,
-    },
-    
+    Http { status: u16, message: String },
+
     /// Invalid URL
     #[error("Invalid URL: {0}")]
     InvalidUrl(String),
-    
+
     /// Parse error
     #[error("Parse error: {0}")]
     Parse(String),
-    
+
     /// PDF extraction error
     #[error("PDF error: {0}")]
     Pdf(String),
-    
+
     /// Content too large
     #[error("Content too large: {size} bytes exceeds max {max} bytes")]
-    ContentTooLarge {
-        size: usize,
-        max: usize,
-    },
-    
+    ContentTooLarge { size: usize, max: usize },
+
     /// Timeout error
     #[error("Request timeout after {0} seconds")]
     Timeout(u64),
-    
+
     /// Sanitization blocked content
     #[cfg(feature = "sanitize")]
     #[error("Content blocked by sanitization: {0}")]
     Blocked(String),
-    
+
     /// IO error
     #[error("IO error: {0}")]
     Io(#[from] std::io::Error),
-    
+
     /// Other error
     #[error("{0}")]
     Other(String),

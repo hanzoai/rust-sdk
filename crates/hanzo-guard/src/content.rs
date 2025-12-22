@@ -1,7 +1,7 @@
 //! Content filtering via Zen Guard API
 
 use crate::config::ContentFilterConfig;
-use crate::error::{GuardError, Result, SafetyCategory};
+use crate::error::{Result, SafetyCategory};
 use crate::types::SafetyLevel;
 use serde::{Deserialize, Serialize};
 
@@ -13,11 +13,13 @@ pub struct ContentFilter {
 }
 
 /// Request to Zen Guard API
+#[allow(dead_code)]
 #[derive(Debug, Serialize)]
 struct GuardRequest {
     messages: Vec<GuardMessage>,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Serialize)]
 struct GuardMessage {
     role: String,
@@ -25,6 +27,7 @@ struct GuardMessage {
 }
 
 /// Response from Zen Guard API
+#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 struct GuardResponse {
     safety: String,
@@ -87,7 +90,8 @@ impl ContentFilter {
 
         let request = GuardRequest { messages };
 
-        let mut req = self.client
+        let mut req = self
+            .client
             .post(&self.config.api_endpoint)
             .json(&request)
             .timeout(std::time::Duration::from_millis(self.config.timeout_ms));
@@ -96,9 +100,10 @@ impl ContentFilter {
             req = req.header("Authorization", format!("Bearer {}", api_key));
         }
 
-        let response = req.send().await.map_err(|e| {
-            GuardError::ContentFilterError(format!("API request failed: {}", e))
-        })?;
+        let response = req
+            .send()
+            .await
+            .map_err(|e| GuardError::ContentFilterError(format!("API request failed: {}", e)))?;
 
         if !response.status().is_success() {
             return Err(GuardError::ContentFilterError(format!(
@@ -147,12 +152,29 @@ impl ContentFilter {
     pub fn should_block(&self, result: &ContentFilterResult) -> Option<(String, SafetyCategory)> {
         match result.safety_level {
             SafetyLevel::Unsafe => {
-                let category = result.categories.first().copied().unwrap_or(SafetyCategory::None);
-                Some((format!("Content classified as unsafe: {:?}", result.categories), category))
+                let category = result
+                    .categories
+                    .first()
+                    .copied()
+                    .unwrap_or(SafetyCategory::None);
+                Some((
+                    format!("Content classified as unsafe: {:?}", result.categories),
+                    category,
+                ))
             }
             SafetyLevel::Controversial if self.config.block_controversial => {
-                let category = result.categories.first().copied().unwrap_or(SafetyCategory::None);
-                Some((format!("Content classified as controversial: {:?}", result.categories), category))
+                let category = result
+                    .categories
+                    .first()
+                    .copied()
+                    .unwrap_or(SafetyCategory::None);
+                Some((
+                    format!(
+                        "Content classified as controversial: {:?}",
+                        result.categories
+                    ),
+                    category,
+                ))
             }
             _ => None,
         }
@@ -160,6 +182,7 @@ impl ContentFilter {
 }
 
 /// Parse category string to enum
+#[allow(dead_code)]
 fn parse_category(category: &str) -> Option<SafetyCategory> {
     match category.to_lowercase().as_str() {
         "violent" => Some(SafetyCategory::Violent),
@@ -168,7 +191,9 @@ fn parse_category(category: &str) -> Option<SafetyCategory> {
         "pii" | "personally identifiable information" => Some(SafetyCategory::Pii),
         "suicide & self-harm" | "selfharm" => Some(SafetyCategory::SelfHarm),
         "unethical acts" | "unethicalacts" => Some(SafetyCategory::UnethicalActs),
-        "politically sensitive topics" | "politicallysensitive" => Some(SafetyCategory::PoliticallySensitive),
+        "politically sensitive topics" | "politicallysensitive" => {
+            Some(SafetyCategory::PoliticallySensitive)
+        }
         "copyright violation" | "copyrightviolation" => Some(SafetyCategory::CopyrightViolation),
         "jailbreak" => Some(SafetyCategory::Jailbreak),
         "none" => Some(SafetyCategory::None),

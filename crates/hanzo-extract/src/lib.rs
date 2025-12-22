@@ -68,7 +68,7 @@ pub use pdf::PdfExtractor;
 pub trait Extractor: Send + Sync {
     /// Extract text content from the given source
     async fn extract(&self, source: &str) -> Result<ExtractResult>;
-    
+
     /// Extract and sanitize content
     #[cfg(feature = "sanitize")]
     async fn extract_sanitized(&self, source: &str) -> Result<ExtractResult>;

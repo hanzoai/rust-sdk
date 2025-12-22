@@ -3,7 +3,7 @@
 use crate::config::AuditConfig;
 use crate::error::SafetyCategory;
 use crate::types::{AuditEntry, AuditResult, Direction, GuardContext, SanitizeResult};
-use chrono::Utc;
+
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 
@@ -22,7 +22,14 @@ impl AuditLogger {
     }
 
     /// Log a sanitization event
-    pub fn log(&self, context: &GuardContext, direction: Direction, content: &str, result: &SanitizeResult, duration_ms: u64) {
+    pub fn log(
+        &self,
+        context: &GuardContext,
+        direction: Direction,
+        content: &str,
+        result: &SanitizeResult,
+        duration_ms: u64,
+    ) {
         if !self.config.enabled {
             return;
         }
@@ -33,8 +40,12 @@ impl AuditLogger {
             content_hash: hash_content(content),
             result: match result {
                 SanitizeResult::Clean(_) => AuditResult::Passed,
-                SanitizeResult::Redacted { redactions, .. } => AuditResult::Redacted { count: redactions.len() },
-                SanitizeResult::Blocked { category, .. } => AuditResult::Blocked { category: *category },
+                SanitizeResult::Redacted { redactions, .. } => AuditResult::Redacted {
+                    count: redactions.len(),
+                },
+                SanitizeResult::Blocked { category, .. } => AuditResult::Blocked {
+                    category: *category,
+                },
             },
             processing_time_ms: duration_ms,
         };
@@ -43,7 +54,14 @@ impl AuditLogger {
     }
 
     /// Log a blocked request
-    pub fn log_blocked(&self, context: &GuardContext, direction: Direction, content: &str, reason: &str, category: SafetyCategory) {
+    pub fn log_blocked(
+        &self,
+        context: &GuardContext,
+        direction: Direction,
+        content: &str,
+        _reason: &str,
+        category: SafetyCategory,
+    ) {
         if !self.config.enabled {
             return;
         }
@@ -122,7 +140,7 @@ impl AuditLogger {
                     .open(path)
                     .and_then(|mut f| {
                         use std::io::Write;
-                        writeln!(f, "{}", json)
+                        writeln!(f, "{json}")
                     });
             }
         }

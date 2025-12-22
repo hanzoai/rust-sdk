@@ -11,6 +11,12 @@ pub struct WebExtractor {
     client: Client,
 }
 
+impl Default for WebExtractor {
+    fn default() -> Self {
+        Self::new(ExtractorConfig::default())
+    }
+}
+
 impl WebExtractor {
     /// Create a new web extractor with the given configuration
     pub fn new(config: ExtractorConfig) -> Self {
@@ -24,29 +30,25 @@ impl WebExtractor {
             .user_agent(&config.user_agent)
             .build()
             .expect("Failed to create HTTP client");
-        
+
         Self { config, client }
     }
-    
-    /// Create a new web extractor with default configuration
-    pub fn default() -> Self {
-        Self::new(ExtractorConfig::default())
-    }
-    
+
+
     /// Extract clean text from HTML content
     fn extract_text_from_html(&self, html: &str) -> (String, Option<String>) {
         let document = Html::parse_document(html);
-        
+
         // Extract title
         let title_selector = Selector::parse("title").unwrap();
         let title = document
             .select(&title_selector)
             .next()
             .map(|el| el.text().collect::<String>().trim().to_string());
-        
+
         // Remove script and style elements
         let mut text_parts = Vec::new();
-        
+
         // Try to get main content areas first
         let content_selectors = [
             "article",
@@ -58,7 +60,7 @@ impl WebExtractor {
             "#content",
             "#main",
         ];
-        
+
         let mut found_main_content = false;
         for selector_str in content_selectors {
             if let Ok(selector) = Selector::parse(selector_str) {
@@ -74,7 +76,7 @@ impl WebExtractor {
                 }
             }
         }
-        
+
         // Fall back to body if no main content found
         if !found_main_content {
             if let Ok(body_selector) = Selector::parse("body") {
@@ -83,17 +85,20 @@ impl WebExtractor {
                 }
             }
         }
-        
+
         let text = text_parts.join("\n\n");
         let clean_text = self.clean_text(&text);
-        
+
         (clean_text, title)
     }
-    
+
     /// Extract text from an HTML element, skipping script/style
+    #[allow(clippy::only_used_in_recursion)]
     fn extract_element_text(&self, element: &scraper::ElementRef) -> String {
-        let skip_tags = ["script", "style", "noscript", "nav", "header", "footer", "aside"];
-        
+        let skip_tags = [
+            "script", "style", "noscript", "nav", "header", "footer", "aside",
+        ];
+
         let mut text = String::new();
         for child in element.children() {
             if let Some(element) = child.value().as_element() {
@@ -103,7 +108,10 @@ impl WebExtractor {
                 }
                 if let Some(child_element) = scraper::ElementRef::wrap(child) {
                     text.push_str(&self.extract_element_text(&child_element));
-                    if matches!(tag, "p" | "div" | "br" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "li") {
+                    if matches!(
+                        tag,
+                        "p" | "div" | "br" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "li"
+                    ) {
                         text.push('\n');
                     }
                 }
@@ -113,14 +121,14 @@ impl WebExtractor {
         }
         text
     }
-    
+
     /// Clean extracted text
     fn clean_text(&self, text: &str) -> String {
         let mut result = String::with_capacity(text.len());
         let mut prev_was_whitespace = false;
         let mut prev_was_newline = false;
         let mut newline_count = 0;
-        
+
         for c in text.chars() {
             if c == '\n' {
                 newline_count += 1;
@@ -142,7 +150,7 @@ impl WebExtractor {
                 newline_count = 0;
             }
         }
-        
+
         result.trim().to_string()
     }
 }
@@ -151,11 +159,12 @@ impl WebExtractor {
 impl Extractor for WebExtractor {
     async fn extract(&self, source: &str) -> Result<ExtractResult> {
         // Validate URL
-        let url = url::Url::parse(source).map_err(|_| ExtractError::InvalidUrl(source.to_string()))?;
-        
+        let url =
+            url::Url::parse(source).map_err(|_| ExtractError::InvalidUrl(source.to_string()))?;
+
         // Fetch the page
         let response = self.client.get(url.as_str()).send().await?;
-        
+
         let status = response.status();
         if !status.is_success() {
             return Err(ExtractError::Http {
@@ -163,16 +172,16 @@ impl Extractor for WebExtractor {
                 message: status.to_string(),
             });
         }
-        
+
         let content_type = response
             .headers()
             .get("content-type")
             .and_then(|v| v.to_str().ok())
             .map(|s| s.to_string());
-        
+
         let body = response.text().await?;
         let original_length = body.len();
-        
+
         // Check size limit
         if original_length > self.config.max_length {
             return Err(ExtractError::ContentTooLarge {
@@ -180,28 +189,28 @@ impl Extractor for WebExtractor {
                 max: self.config.max_length,
             });
         }
-        
+
         // Extract text
         let (text, title) = if self.config.clean_text {
             self.extract_text_from_html(&body)
         } else {
             (body, None)
         };
-        
-        let mut result = ExtractResult::new(text, source.to_string())
-            .with_original_length(original_length);
-        
+
+        let mut result =
+            ExtractResult::new(text, source.to_string()).with_original_length(original_length);
+
         if let Some(ct) = content_type {
             result = result.with_content_type(ct);
         }
-        
+
         if let Some(t) = title {
             result = result.with_title(t);
         }
-        
+
         Ok(result)
     }
-    
+
     #[cfg(feature = "sanitize")]
     async fn extract_sanitized(&self, source: &str) -> Result<ExtractResult> {
         let result = self.extract(source).await?;
@@ -212,7 +221,7 @@ impl Extractor for WebExtractor {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_clean_text() {
         let extractor = WebExtractor::default();
@@ -221,7 +230,7 @@ mod tests {
         // Consecutive whitespace collapsed, preserving single newline
         assert_eq!(result, "Hello World \nTest");
     }
-    
+
     #[test]
     fn test_extract_text_from_html() {
         let extractor = WebExtractor::default();
@@ -236,7 +245,7 @@ mod tests {
         </body>
         </html>
         "#;
-        
+
         let (text, title) = extractor.extract_text_from_html(html);
         assert_eq!(title, Some("Test Page".to_string()));
         assert!(text.contains("Hello World"));
