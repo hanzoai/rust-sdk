@@ -1,9 +1,15 @@
 //! Rate limiting for Guard
 
 use crate::config::RateLimitConfig;
+#[cfg(not(feature = "rate-limit"))]
+use crate::error::Result;
+#[cfg(feature = "rate-limit")]
 use crate::error::{GuardError, Result};
+#[cfg(feature = "rate-limit")]
 use std::collections::HashMap;
+#[cfg(feature = "rate-limit")]
 use std::sync::Arc;
+#[cfg(feature = "rate-limit")]
 use tokio::sync::RwLock;
 
 #[cfg(feature = "rate-limit")]
@@ -21,6 +27,7 @@ type InnerLimiter = GovernorLimiter<
 
 /// Rate limiter for API requests
 pub struct RateLimiter {
+    #[allow(dead_code)]
     config: RateLimitConfig,
     #[cfg(feature = "rate-limit")]
     limiters: Arc<RwLock<HashMap<String, Arc<InnerLimiter>>>>,

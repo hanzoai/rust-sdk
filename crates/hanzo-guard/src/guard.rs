@@ -274,6 +274,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[cfg(feature = "pii")]
     async fn test_pii_redaction() {
         let guard = Guard::new(GuardConfig::minimal());
         let result = guard.sanitize_input("My SSN is 123-45-6789").await.unwrap();
@@ -307,6 +308,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[cfg(feature = "pii")]
     async fn test_builder() {
         let guard = Guard::builder().pii_only().build();
 

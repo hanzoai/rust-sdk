@@ -34,7 +34,6 @@ impl WebExtractor {
         Self { config, client }
     }
 
-
     /// Extract clean text from HTML content
     fn extract_text_from_html(&self, html: &str) -> (String, Option<String>) {
         let document = Html::parse_document(html);
