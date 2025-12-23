@@ -7,10 +7,11 @@ on:
       - 'hanzo-message-primitives-*'
       - 'hanzo-pqc-*'
       - 'hanzo-kbs-*'
+      - 'hanzo-agent-proxy-*'
   workflow_dispatch:
     inputs:
       crate:
-        description: 'Crate to publish (hanzo-message-primitives, hanzo-pqc, hanzo-kbs, or all)'
+        description: 'Crate to publish (hanzo-message-primitives, hanzo-pqc, hanzo-kbs, hanzo-agent-proxy, or all)'
         required: true
         default: 'all'
         type: choice
@@ -19,6 +20,7 @@ on:
           - hanzo-message-primitives
           - hanzo-pqc
           - hanzo-kbs
+          - hanzo-agent-proxy
       dry_run:
         description: 'Dry run (do not actually publish)'
         required: false
@@ -38,6 +40,7 @@ jobs:
       publish_message_primitives: ${{ steps.determine.outputs.publish_message_primitives }}
       publish_pqc: ${{ steps.determine.outputs.publish_pqc }}
       publish_kbs: ${{ steps.determine.outputs.publish_kbs }}
+      publish_agent_proxy: ${{ steps.determine.outputs.publish_agent_proxy }}
       version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
@@ -53,21 +56,31 @@ jobs:
                 echo "publish_message_primitives=true" >> $GITHUB_OUTPUT
                 echo "publish_pqc=true" >> $GITHUB_OUTPUT
                 echo "publish_kbs=true" >> $GITHUB_OUTPUT
+                echo "publish_agent_proxy=true" >> $GITHUB_OUTPUT
                 ;;
               "hanzo-message-primitives")
                 echo "publish_message_primitives=true" >> $GITHUB_OUTPUT
                 echo "publish_pqc=false" >> $GITHUB_OUTPUT
                 echo "publish_kbs=false" >> $GITHUB_OUTPUT
+                echo "publish_agent_proxy=false" >> $GITHUB_OUTPUT
                 ;;
               "hanzo-pqc")
                 echo "publish_message_primitives=false" >> $GITHUB_OUTPUT
                 echo "publish_pqc=true" >> $GITHUB_OUTPUT
                 echo "publish_kbs=false" >> $GITHUB_OUTPUT
+                echo "publish_agent_proxy=false" >> $GITHUB_OUTPUT
                 ;;
               "hanzo-kbs")
                 echo "publish_message_primitives=false" >> $GITHUB_OUTPUT
                 echo "publish_pqc=false" >> $GITHUB_OUTPUT
                 echo "publish_kbs=true" >> $GITHUB_OUTPUT
+                echo "publish_agent_proxy=false" >> $GITHUB_OUTPUT
+                ;;
+              "hanzo-agent-proxy")
+                echo "publish_message_primitives=false" >> $GITHUB_OUTPUT
+                echo "publish_pqc=false" >> $GITHUB_OUTPUT
+                echo "publish_kbs=false" >> $GITHUB_OUTPUT
+                echo "publish_agent_proxy=true" >> $GITHUB_OUTPUT
                 ;;
             esac
           else
@@ -76,24 +89,34 @@ jobs:
               echo "publish_message_primitives=true" >> $GITHUB_OUTPUT
               echo "publish_pqc=false" >> $GITHUB_OUTPUT
               echo "publish_kbs=false" >> $GITHUB_OUTPUT
+              echo "publish_agent_proxy=false" >> $GITHUB_OUTPUT
             elif [[ "$TAG" == hanzo-pqc-* ]]; then
               echo "publish_message_primitives=false" >> $GITHUB_OUTPUT
               echo "publish_pqc=true" >> $GITHUB_OUTPUT
               echo "publish_kbs=false" >> $GITHUB_OUTPUT
+              echo "publish_agent_proxy=false" >> $GITHUB_OUTPUT
             elif [[ "$TAG" == hanzo-kbs-* ]]; then
               echo "publish_message_primitives=false" >> $GITHUB_OUTPUT
               echo "publish_pqc=false" >> $GITHUB_OUTPUT
               echo "publish_kbs=true" >> $GITHUB_OUTPUT
+              echo "publish_agent_proxy=false" >> $GITHUB_OUTPUT
+            elif [[ "$TAG" == hanzo-agent-proxy-* ]]; then
+              echo "publish_message_primitives=false" >> $GITHUB_OUTPUT
+              echo "publish_pqc=false" >> $GITHUB_OUTPUT
+              echo "publish_kbs=false" >> $GITHUB_OUTPUT
+              echo "publish_agent_proxy=true" >> $GITHUB_OUTPUT
             elif [[ "$TAG" == v* ]]; then
               # General version tag publishes all packages
               echo "publish_message_primitives=true" >> $GITHUB_OUTPUT
               echo "publish_pqc=true" >> $GITHUB_OUTPUT
               echo "publish_kbs=true" >> $GITHUB_OUTPUT
+              echo "publish_agent_proxy=true" >> $GITHUB_OUTPUT
             else
               echo "Unknown tag pattern: $TAG"
               echo "publish_message_primitives=false" >> $GITHUB_OUTPUT
               echo "publish_pqc=false" >> $GITHUB_OUTPUT
               echo "publish_kbs=false" >> $GITHUB_OUTPUT
+              echo "publish_agent_proxy=false" >> $GITHUB_OUTPUT
             fi
           fi
           
@@ -101,6 +124,7 @@ jobs:
           echo "  message-primitives: $(grep publish_message_primitives $GITHUB_OUTPUT || echo 'false')"
           echo "  pqc: $(grep publish_pqc $GITHUB_OUTPUT || echo 'false')"
           echo "  kbs: $(grep publish_kbs $GITHUB_OUTPUT || echo 'false')"
+          echo "  agent-proxy: $(grep publish_agent_proxy $GITHUB_OUTPUT || echo 'false')"
       - name: Extract version
         id: version
         run: |
@@ -171,6 +195,11 @@ jobs:
         run: |
           cd crates/hanzo-pqc
           cargo publish --dry-run
+      - name: Verify hanzo-agent-proxy
+        if: needs.prepare.outputs.publish_agent_proxy == 'true'
+        run: |
+          cd crates/hanzo-agent-proxy
+          cargo publish --dry-run
       # hanzo-kbs is a standalone workspace with external deps - skip for now
       # - name: Verify hanzo-kbs
       #   if: needs.prepare.outputs.publish_kbs == 'true'
@@ -229,7 +258,14 @@ jobs:
           cd crates/hanzo-pqc
           cargo publish --no-verify
           sleep 30
-      
+
+      - name: Publish hanzo-agent-proxy
+        if: needs.prepare.outputs.publish_agent_proxy == 'true'
+        run: |
+          cd crates/hanzo-agent-proxy
+          cargo publish --no-verify
+          sleep 30
+
       # hanzo-kbs is a standalone workspace with external deps - skip for now
       # - name: Publish hanzo-kbs
       #   if: needs.prepare.outputs.publish_kbs == 'true'
@@ -299,6 +335,7 @@ jobs:
             - hanzo-message-primitives: ${{ needs.prepare.outputs.publish_message_primitives }}
             - hanzo-pqc: ${{ needs.prepare.outputs.publish_pqc }}
             - hanzo-kbs: ${{ needs.prepare.outputs.publish_kbs }}
+            - hanzo-agent-proxy: ${{ needs.prepare.outputs.publish_agent_proxy }}
           webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

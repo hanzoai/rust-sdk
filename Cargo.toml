@@ -23,6 +23,7 @@ members = [
 
     # AI/ML - Agents (SHARED FOR DEV/NODE INTEGRATION)
     "crates/hanzo-agent",            # Agent framework - key for tool calling
+    "crates/hanzo-agent-proxy",      # Multi-backend OpenAI-compatible API proxy
     "crates/hanzo-mcp-core",         # MCP core traits and types
     "crates/hanzo-mcp-client",       # MCP client (connects to servers)
     "crates/hanzo-mcp-server",       # MCP server (exposes tools)
@@ -245,6 +246,7 @@ hanzo-guard = { path = "./crates/hanzo-guard" }
 
 # AI/ML
 hanzo-agent = { path = "./crates/hanzo-agent" }
+hanzo-agent-proxy = { path = "./crates/hanzo-agent-proxy" }
 hanzo-agents = { path = "./crates/hanzo-agents" }
 hanzo-llm = { path = "./crates/hanzo-llm" }
 hanzo-hmm = { path = "./crates/hanzo-hmm" }
